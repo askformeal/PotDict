@@ -1,0 +1,10 @@
+.vscode
+tmp.txt
+tmp.html
+dist
+build
+ico.png
+*.exe
+tmp.py
+tmp2.py
+*.log

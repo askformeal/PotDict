@@ -1,0 +1,24 @@
+{
+    "window": {
+        "width": 300,
+        "height": 300,
+        "start_pos_y": 100,
+        "start_pos_x": 100,
+        "resize": true
+    },
+    "network": {
+        "host": "127.0.0.1",
+        "port": 65432,
+        "listen_cnt": 5
+    },
+    "dictionaries": {
+        "paths": [
+            "./dicts/Oxford Dictionary of English 2nd.mdx"
+        ]
+    },
+    "log": {
+        "log_level": "DEBUG",
+        "print_log": false,
+        "log_max_bytes": 1048576
+    }
+}
