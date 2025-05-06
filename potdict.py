@@ -27,24 +27,10 @@ class PotDict(tk.Tk):
 
         for k, v in self.file_paths.items():
             self.file_paths[k] = self.convert_path(v)
-
-        try:
-            with open('./settings.json', 'r') as f:
-                settings = json.load(f)
-
-        except FileNotFoundError:
-            settings = self.restore_default_settings()
-            self.log("File not found: settings.json, create default setting file", 'i',
-                     max_log_bytes=settings['log']['log_max_bytes'],
-                     log_level=settings['log']['log_level'],
-                     print_log=settings['log']['print_log'],)
-        except json.decoder.JSONDecodeError:
-            self.log("Invalid index in settings.json", 'c',
-                        log_level='DEBUG',
-                        print_log=False)
-            sys.exit(1)
         
-        window = settings['window']
+        self.load_files()
+
+        window = self.settings['window']
         self.WIDTH = window['width']
         self.HEIGHT = window['height']
         self.RESIZE = window['resize']
@@ -56,17 +42,17 @@ class PotDict(tk.Tk):
         self.BG_COLOR_CLICK = window['color']['bg_color_click']
         self.FONT_COLOR_CLICK = window['color']['font_color_click'] """
         
-        network = settings['network']
+        network = self.settings['network']
         self.HOST = network['host']
         self.PORT = network['port']
         self.MAX_CONNECT = network['max_connect']
         self.TIMEOUT = network['timeout']
         self.MAX_RETRIES = network['max_retries']
         
-        dicts = settings['dictionaries']
+        dicts = self.settings['dictionaries']
         self.DICT_PATH = dicts['paths'][0]
         
-        log = settings['log']
+        log = self.settings['log']
         self.LOG_LEVEL = log['log_level']
         self.PRINT_LOG = log['print_log']
         self.LOG_MAX_BYTES = log['log_max_bytes']
@@ -82,11 +68,64 @@ class PotDict(tk.Tk):
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.headwords = [*MDX(self.DICT_PATH)]
-        self.items = [*MDX(self.DICT_PATH).items()] 
+        self.items = [*MDX(self.DICT_PATH).items()]
+
+        self.HEADER_200 = f'''HTTP/1.1 200 OK
+        Content-Type: text/html; charset=UTF-8
+        '''
+
+        self.HEADER_400 = f'''HTTP/1.1 400 Bad Request
+        Content-Type: text/html; charset=UTF-8
+        '''
 
         self.running = True
 
         self.setup_gui()
+
+    def load_files(self):
+        try:
+            with open('./settings.json', 'r') as f:
+                self.settings = json.load(f)
+
+        except FileNotFoundError:
+            self.settings = self.restore_default_settings()
+            self.log("File not found: settings.json, create default setting file", 'i',
+                     max_log_bytes=self.settings['log']['log_max_bytes'],
+                     log_level=self.settings['log']['log_level'],
+                     print_log=self.settings['log']['print_log'],)
+        except json.decoder.JSONDecodeError:
+            self.log("Invalid index in settings.json", 'c',
+                        log_level='DEBUG',
+                        print_log=False)
+            sys.exit(1)
+
+        try:
+            with open(self.file_paths['homepage_html'], 'r', encoding='utf-8') as f:
+                self.homepage_template = f.read()
+        except FileNotFoundError:
+            self.log('File not found: homepage.html', 'c')
+            self.exit_server(code=1)
+
+        try:
+            with open(self.file_paths['result_html'], 'r', encoding='utf-8') as f:
+                self.result_template = f.read()
+        except FileNotFoundError:
+            self.log('File not found: result.html', 'c')
+            self.exit_server(code=1)
+
+        try:
+            with open(self.file_paths['not_found_html'], 'r', encoding='utf-8') as f:
+                self.not_found_template = f.read()
+        except FileNotFoundError:
+            self.log('File not found: not_found.html', 'c')
+            self.exit_server(code=1)
+
+        try:
+            with open(self.file_paths['400_html'], 'r', encoding='utf-8') as f:
+                self.bad_request_template = f.read()
+        except FileNotFoundError:
+            self.log('File not found: 400.html', 'c')
+            self.exit_server(code=1)
 
     def restore_default_settings(self):
         try:
@@ -226,43 +265,6 @@ class PotDict(tk.Tk):
                 break
 
     def listen_network(self):
-        try:
-            with open(self.file_paths['homepage_html'], 'r', encoding='utf-8') as f:
-                homepage_template = f.read()
-        except FileNotFoundError:
-            self.log('File not found: homepage.html', 'c')
-            self.exit_server(code=1)
-
-        try:
-            with open(self.file_paths['result_html'], 'r', encoding='utf-8') as f:
-                result_template = f.read()
-        except FileNotFoundError:
-            self.log('File not found: result.html', 'c')
-            self.exit_server(code=1)
-
-        try:
-            with open(self.file_paths['not_found_html'], 'r', encoding='utf-8') as f:
-                not_found_template = f.read()
-        except FileNotFoundError:
-            self.log('File not found: not_found.html', 'c')
-            self.exit_server(code=1)
-
-        try:
-            with open(self.file_paths['400_html'], 'r', encoding='utf-8') as f:
-                bad_request_template = f.read()
-        except FileNotFoundError:
-            self.log('File not found: 400.html', 'c')
-            self.exit_server(code=1)
-
-
-        header200 = f'''HTTP/1.1 200 OK
-        Content-Type: text/html; charset=UTF-8
-        '''
-
-        header400 = f'''HTTP/1.1 400 Bad Request
-        Content-Type: text/html; charset=UTF-8
-        '''
-
         self.server_socket.bind((self.HOST, self.PORT))
 
         self.server_socket.listen(self.MAX_CONNECT)
@@ -301,20 +303,20 @@ class PotDict(tk.Tk):
                 
                 if len(path) == 0:
                     self.log('Access homepage')
-                    response = homepage_template
-                    header = header200
+                    response = self.homepage_template
+                    header = self.HEADER_200
                 elif path[0] == 'search' and query_word:
                     result = self.search(query_word)
                     if result:
-                        response = result_template
-                        header = header200
+                        response = self.result_template
+                        header = self.HEADER_200
                     else:
-                        response = not_found_template
-                        header = header200
+                        response = self.not_found_template
+                        header = self.HEADER_200
                 else:
                     self.log('Bad Request', 'e', output=False)
-                    response = bad_request_template
-                    header = header400
+                    response = self.bad_request_template
+                    header = self.HEADER_400
                 
                 if query_word:
                     response = response.replace('%Q', query_word)
@@ -353,8 +355,12 @@ class PotDict(tk.Tk):
             self.stop_listener()                  
 
     def exit_server(self, code = 0, event=None):
-        self.stop_listener()
-        self.log('Exiting server...', 'i', output=True, nl=True)
+        try:
+            self.stop_listener()
+            self.log('Exiting server...', 'i', output=True, nl=True)
+        except Exception as e:
+            self.log(f'Exception when exiting: {e}', 'e', log_level='DEBUG', print_log=True)
+            sys.exit(code)
         self.code = code
         self.quit()
         self.destroy()
