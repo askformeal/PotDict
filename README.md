@@ -1,4 +1,4 @@
-# PotDict
+# PotDict V0.0.1
 
 PotDict is a addon dictionary application for PotPlayer.
 
@@ -58,6 +58,73 @@ Select PotDict and click "Up" until it's on the top. This way, PotDict will be t
 After saving you changes, click a word in the subtitle. If you see a page like this, PotDict is working properly:
 
 ![](E:\Files\programming\python\PotDict\readme_files\img7.png)
+
+### Settings:
+
+The you can change you settings by edit `settings.json` which in the same folder as PotDict.exe. You also open it by open PoDict and click File > Open Settings.json.
+
+This is an example of `settings.json`
+
+```json
+{
+    "window": {
+        "width": 300,
+        "height": 300,
+        "start_pos_y": 100,
+        "start_pos_x": 100,
+        "resize": true
+    },
+    "network": {
+        "host": "127.0.0.1",
+        "port": 65432,
+        "max_connect": 5
+    },
+    "dictionaries": {
+        "paths": [
+            "./dicts/Oxford Dictionary of English 2nd.mdx"
+        ]
+    },
+    "log": {
+        "log_level": "DEBUG",
+        "print_log": false,
+        "log_max_bytes": 1048576
+    }
+}
+```
+
+#### window
+
+| Option      | Type       | Description                                                  |
+| ----------- | ---------- | ------------------------------------------------------------ |
+| width       | number     | Initial width of the PotDict window                          |
+| height      | number     | Initial height of the PotDict window                         |
+| start_pos_x | number     | Initial distance between the left boarder of window and the screen |
+| start_pos_y | number     | Initial distance between the upper boarder of window and the screen |
+| resize      | true/false | Whether the user will be able to resize the window.          |
+
+#### network
+
+| Option      | Type   | Description                                                  |
+| ----------- | ------ | ------------------------------------------------------------ |
+| host        | string | The IP PotDict will be listening. <br />(127.0.0.1 means the current computer's IP.) |
+| port        | number | The port PotDict will be listening.                          |
+| max_connect | number | Maximum connection allow. <br />(This looks pretty useless, but I suggest you not to change it.) |
+
+#### dictionaries
+
+| Options | Type          | Description                                                  |
+| ------- | ------------- | ------------------------------------------------------------ |
+| paths   | array{string} | A list of dictionaries to be loaded.<br />(I hadn't developed the multi-dict feature, so only the first dictionary will be loaded) |
+
+#### log
+
+| Option        | Type       | Description                                                  |
+| :------------ | ---------- | ------------------------------------------------------------ |
+| log_level     | string     | Level of logging, levels from low to high are: "DEBUG" "INFO" "WARNING" "ERROR" "CRITICAL" |
+| print_log     | true/false | Whether to print the log to console.                         |
+| log_max_bytes | number     | Maximum size of the log file (bytes).                        |
+
+For JSON syntax, check out [This](https://www.json.org/)
 
 ### Known Errors & Solutions:
 

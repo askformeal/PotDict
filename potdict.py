@@ -9,11 +9,13 @@ import json
 import os
 import sys
 
-# TODO add the "are you searching for thing", add multi dict, add mores settings
+# TODO add the "are you searching for thing", add multi dict, strip keywords, add timeout
 
 class PotDict(tk.Tk):
     def __init__(self):
         super().__init__()
+        
+        self.VERSION = 'v0.0.1'
     
         self.file_paths = {
             'homepage_html' : './data/html/homepage.html',
@@ -57,7 +59,7 @@ class PotDict(tk.Tk):
         network = settings['network']
         self.HOST = network['host']
         self.PORT = network['port']
-        self.LISTEN_CNT = network['listen_cnt']
+        self.MAX_CONNECT = network['max_connect']
         
         dicts = settings['dictionaries']
         self.DICT_PATH = dicts['paths'][0]
@@ -67,7 +69,6 @@ class PotDict(tk.Tk):
         self.PRINT_LOG = log['print_log']
         self.LOG_MAX_BYTES = log['log_max_bytes']
 
-        self.VERSION = 'v0.0.0'
         self.code = 0
 
         if not os.path.exists('./app.log'):
@@ -172,8 +173,11 @@ class PotDict(tk.Tk):
         level = levels[level]
         if importance[level] >= importance[self.LOG_LEVEL]:
             
-            if output or self.PRINT_LOG:
+            if output:
                 self.display(f"{msg}")
+
+            if self.PRINT_LOG:
+                print(msg)
 
             msg = msg.replace('\n', '')
 
@@ -242,7 +246,7 @@ class PotDict(tk.Tk):
 
         self.server_socket.bind((self.HOST, self.PORT))
 
-        self.server_socket.listen(self.LISTEN_CNT)
+        self.server_socket.listen(self.MAX_CONNECT)
         self.log(f'listening at {self.HOST}:{self.PORT}...', 'i', output=True)
 
         while True:
@@ -275,7 +279,6 @@ class PotDict(tk.Tk):
                     self.log('Access homepage')
                     response = homepage_template
                     header = header200
-                
                 elif path[0] == 'search' and query_word:
                     result = self.search(query_word)
                     if result:
