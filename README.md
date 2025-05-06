@@ -77,7 +77,9 @@ This is an example of `settings.json`
     "network": {
         "host": "127.0.0.1",
         "port": 65432,
-        "max_connect": 5
+        "max_connect": 5,
+        "timeout" : 7,
+        "max_retries" : -1
     },
     "dictionaries": {
         "paths": [
