@@ -9,7 +9,9 @@
     "network": {
         "host": "127.0.0.1",
         "port": 65432,
-        "max_connect": 5
+        "max_connect": 5,
+        "timeout" : 5,
+        "max_retries" : -1
     },
     "dictionaries": {
         "paths": [

@@ -60,6 +60,8 @@ class PotDict(tk.Tk):
         self.HOST = network['host']
         self.PORT = network['port']
         self.MAX_CONNECT = network['max_connect']
+        self.TIMEOUT = network['timeout']
+        self.MAX_RETRIES = network['max_retries']
         
         dicts = settings['dictionaries']
         self.DICT_PATH = dicts['paths'][0]
@@ -68,6 +70,9 @@ class PotDict(tk.Tk):
         self.LOG_LEVEL = log['log_level']
         self.PRINT_LOG = log['print_log']
         self.LOG_MAX_BYTES = log['log_max_bytes']
+
+        self.handling = False
+        self.retries_left = self.MAX_RETRIES
 
         self.code = 0
 
@@ -81,7 +86,7 @@ class PotDict(tk.Tk):
 
         self.running = True
 
-        self.build_gui()
+        self.setup_gui()
 
     def restore_default_settings(self):
         try:
@@ -206,6 +211,20 @@ class PotDict(tk.Tk):
         word,html = word.decode('utf-8'), html.decode('utf-8')
         return html
 
+    def super_listener(self, start_time):
+        if self.retries_left == 0:
+            self.log(f'Reached maximum retries, shutdown listener.')
+            self.pause_listener()
+        while self.handling:
+            if (datetime.now().timestamp() - start_time) > self.TIMEOUT:
+                if self.MAX_RETRIES != -1:
+                    self.retries_left -= 1
+                    self.log(f'Connection timeout, {self.retries_left} retries remained', 'w', output=True)
+                else:
+                    self.log(f'Connection timeout, retry', 'w', output=True)
+                self.restart_listener()
+                break
+
     def listen_network(self):
         try:
             with open(self.file_paths['homepage_html'], 'r', encoding='utf-8') as f:
@@ -255,6 +274,11 @@ class PotDict(tk.Tk):
             except OSError:
                 self.log("Socket closed", 'd', output=True)
                 return
+            
+            self.handling = True
+            super_thread = threading.Thread(target=self.super_listener, args=(datetime.now().timestamp(),))
+            super_thread.daemon = True
+            super_thread.start()
             with client_socket:
                 result = None
                 self.log(f"Connect from: {client_address}", 'd')
@@ -303,6 +327,9 @@ class PotDict(tk.Tk):
                 
                 client_socket.sendall(response.encode('utf-8'))
                 self.log("Response sent\n", 'd')
+                
+                self.handling = False
+                self.retries_left = self.MAX_RETRIES
 
 
     def start_listener(self):
@@ -371,7 +398,7 @@ By Demons1014'''
         
         return widget
 
-    def build_gui(self):
+    def setup_gui(self):
 
         # Window
         self.title("PotDict - Demons1014")
