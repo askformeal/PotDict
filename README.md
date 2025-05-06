@@ -96,10 +96,10 @@ This is an example of `settings.json`
 
 | Option      | Type       | Description                                                  |
 | ----------- | ---------- | ------------------------------------------------------------ |
-| width       | number     | Initial width of the PotDict window                          |
-| height      | number     | Initial height of the PotDict window                         |
-| start_pos_x | number     | Initial distance between the left boarder of window and the screen |
-| start_pos_y | number     | Initial distance between the upper boarder of window and the screen |
+| width       | number     | Initial width of the PotDict window.                         |
+| height      | number     | Initial height of the PotDict window.                        |
+| start_pos_x | number     | Initial distance between the left boarder of window and the screen. |
+| start_pos_y | number     | Initial distance between the upper boarder of window and the screen. |
 | resize      | true/false | Whether the user will be able to resize the window.          |
 
 #### network
@@ -109,18 +109,20 @@ This is an example of `settings.json`
 | host        | string | The IP PotDict will be listening. <br />(127.0.0.1 means the current computer's IP.) |
 | port        | number | The port PotDict will be listening.                          |
 | max_connect | number | Maximum connection allow. <br />(This looks pretty useless, but I suggest you not to change it.) |
+| timeout     | number | Connection timeout.                                          |
+| max_retries | number | Maximum retries, set to -1 for infinite retries.             |
 
 #### dictionaries
 
 | Options | Type          | Description                                                  |
 | ------- | ------------- | ------------------------------------------------------------ |
-| paths   | array{string} | A list of dictionaries to be loaded.<br />(I hadn't developed the multi-dict feature, so only the first dictionary will be loaded) |
+| paths   | array{string} | A list of dictionaries to be loaded.<br />(I hadn't developed the multi-dict feature, so only the first dictionary will be loaded.) |
 
 #### log
 
 | Option        | Type       | Description                                                  |
 | :------------ | ---------- | ------------------------------------------------------------ |
-| log_level     | string     | Level of logging, levels from low to high are: "DEBUG" "INFO" "WARNING" "ERROR" "CRITICAL" |
+| log_level     | string     | Level of logging, levels from low to high are:<br /> "DEBUG"<br /> "INFO" <br />"WARNING" <br />"ERROR"<br /> "CRITICAL". |
 | print_log     | true/false | Whether to print the log to console.                         |
 | log_max_bytes | number     | Maximum size of the log file (bytes).                        |
 

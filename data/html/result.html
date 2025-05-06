@@ -10,13 +10,14 @@
 </head>
 
 <body>
-    <div>
-        <form action="http://%H:%P/search" method="get">
-            <input type="text" id="search" name="q" placeholder="Search..." value="%Q">
-            <button type="submit">Sumbit</button>
-        </form>
-        %R
-    </div>
+    <a href="https://bing.com/search?q=%Q">Search "%Q" using Bing</a>
+    <form action="http://%H:%P/search" method="get">
+        <input type="text" id="search" name="q" placeholder="Search..." value="%Q" size="10">
+        <button type="submit">Sumbit</button>
+
+
+    </form>
+    %R
 </body>
 
 </html>

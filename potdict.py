@@ -15,7 +15,7 @@ class PotDict(tk.Tk):
     def __init__(self):
         super().__init__()
         
-        self.VERSION = 'v0.0.1'
+        self.VERSION = 'v0.1.0'
     
         self.file_paths = {
             'homepage_html' : './data/html/homepage.html',
@@ -235,7 +235,8 @@ class PotDict(tk.Tk):
     def search(self, query_word):
         # 1 -> found
         # 0 -> not found
-        self.log(f'searching {query_word}...', 'd', output=True)
+        query_word = query_word.strip()
+        self.log(f'Searching {query_word}...', 'd', output=True)
         try:
             word_index =self.headwords.index(query_word.encode('utf-8'))
         except ValueError:
@@ -468,7 +469,7 @@ By Demons1014'''
         scrollbar.config(command=self.listbox.yview)
 
         # Label
-        label = tk.Label(self, text='PotDict\nBy Demons1014')
+        label = tk.Label(self, text=f'PotDict {self.VERSION}\nBy Demons1014')
         label.pack(fill='both', expand=True)
 
     def main(self):
