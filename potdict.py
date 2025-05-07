@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import messagebox
 from readmdict import MDX
 from Levenshtein import distance
+import webbrowser
 import threading
 from datetime import datetime
 import json
@@ -16,7 +17,7 @@ class PotDict(tk.Tk):
     def __init__(self):
         super().__init__()
         
-        self.VERSION = 'v0.2.1'
+        self.VERSION = 'v0.3.0'
     
         self.file_paths = {
             'homepage_html' : './data/html/homepage.html',
@@ -403,6 +404,9 @@ class PotDict(tk.Tk):
             self.log("File not found: settings.json", 'c')
             sys.exit(1)
 
+    def open_repo(self):
+        webbrowser.open('https://github.com/askformeal/PotDict')
+
     def show_about(self):
         about = f'''PotDict {self.VERSION}
 By Demons1014'''
@@ -464,6 +468,7 @@ By Demons1014'''
         help_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label='Help', menu=help_menu)
 
+        help_menu.add_command(label='Open GitHub Repository', command=self.open_repo)
         help_menu.add_separator()
         help_menu.add_command(label='About', command=self.show_about)
 
