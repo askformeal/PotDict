@@ -1,8 +1,6 @@
-# PotDict V0.0.1
+# PotDict V0.2.0
 
 PotDict is a addon dictionary application for PotPlayer.
-
-
 
 ## Requirements:
 
@@ -19,8 +17,6 @@ If you want to run the source code, the following libraries will be required:
 
 Download the zip file and extract the content to whatever place you feel like. Then run PotDict.exe. I recommend can create a desktop shortcut.
 
-
-
 ## Usage:
 
 ### Basic usage:
@@ -31,7 +27,7 @@ Download the zip file and extract the content to whatever place you feel like. T
 2. Restart listener
 3. Start/Stop listener
 
-Copy `127.0.0.1:65432` or other url displayed and paste it into your browser. 
+Copy `127.0.0.1:65432` or other url displayed and paste it into your browser.
 
 If you saw something like this, it means PotDict is running:
 
@@ -97,45 +93,44 @@ This is an example of `settings.json`
 
 #### window
 
-| Option      | Type       | Description                                                  |
-| ----------- | ---------- | ------------------------------------------------------------ |
-| width       | number     | Initial width of the PotDict window.                         |
-| height      | number     | Initial height of the PotDict window.                        |
-| start_pos_x | number     | Initial distance between the left boarder of window and the screen. |
+| Option      | Type       | Description                                                          |
+| ----------- | ---------- | -------------------------------------------------------------------- |
+| width       | number     | Initial width of the PotDict window.                                 |
+| height      | number     | Initial height of the PotDict window.                                |
+| start_pos_x | number     | Initial distance between the left boarder of window and the screen.  |
 | start_pos_y | number     | Initial distance between the upper boarder of window and the screen. |
-| resize      | true/false | Whether the user will be able to resize the window.          |
+| resize      | true/false | Whether the user will be able to resize the window.                  |
 
 #### network
 
-| Option      | Type   | Description                                                  |
-| ----------- | ------ | ------------------------------------------------------------ |
-| host        | string | The IP PotDict will be listening. <br />(127.0.0.1 means the current computer's IP.) |
-| port        | number | The port PotDict will be listening.                          |
-| max_connect | number | Maximum connection allow. <br />(This looks pretty useless, but I suggest you not to change it.) |
-| timeout     | number | Connection timeout.                                          |
-| max_retries | number | Maximum retries, set to -1 for infinite retries.             |
+| Option      | Type   | Description                                                                                     |
+| ----------- | ------ | ----------------------------------------------------------------------------------------------- |
+| host        | string | The IP PotDict will be listening.<br />(127.0.0.1 means the current computer's IP.)             |
+| port        | number | The port PotDict will be listening.                                                             |
+| max_connect | number | Maximum connection allow.<br />(This looks pretty useless, but I suggest you not to change it.) |
+| timeout     | number | Connection timeout.                                                                             |
+| max_retries | number | Maximum retries, set to -1 for infinite retries.                                                |
 
 #### search
 
-| Options             | Type          | Description                                                  |
-| ------------------- | ------------- | ------------------------------------------------------------ |
+| Options             | Type          | Description                                                                                                                         |
+| ------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | dict_paths          | array{string} | A list of dictionaries to be loaded.<br />(I hadn't developed the multi-dict feature, so only the first dictionary will be loaded.) |
-| similar_words_shown | number        | number of similar words to be shown when definition was not found. |
+| similar_words_shown | number        | number of similar words to be shown when definition was not found.                                                                  |
 
 #### log
 
-| Option        | Type       | Description                                                  |
-| :------------ | ---------- | ------------------------------------------------------------ |
+| Option        | Type       | Description                                                                                                               |
+| :------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------- |
 | log_level     | string     | Level of logging, levels from low to high are:<br /> "DEBUG"<br /> "INFO" <br />"WARNING" <br />"ERROR"<br /> "CRITICAL". |
-| print_log     | true/false | Whether to print the log to console.                         |
-| log_max_bytes | number     | Maximum size of the log file (bytes).                        |
+| print_log     | true/false | Whether to print the log to console.                                                                                      |
+| log_max_bytes | number     | Maximum size of the log file (bytes).                                                                                     |
 
 For JSON syntax, check out [This](https://www.json.org/)
 
 ### Known Errors & Solutions:
 
 - **If you saw a blank page when searching from PotPlayer, try to set the "Browser" option to "System Default" rather than "Internet Explorer". (Why are people still using IE in 2025?)**
-
 - If the searching page is loading for a very long time, press Ctrl+F5 to refresh. If it's still not working, try to restart the listener.
 
-    If you want to report a BUG or give me a recommendation, please create an Issue on the [GitHub Repository](https://github.com/askformeal/PotDict) or send an E-mail to `zeus1014_2023@163.com`. I'll be most grateful for your feedback. 
+  If you want to report a BUG or give me a recommendation, please create an Issue on the [GitHub Repository](https://github.com/askformeal/PotDict) or send an E-mail to `zeus1014_2023@163.com`. I'll be most grateful for your feedback.
