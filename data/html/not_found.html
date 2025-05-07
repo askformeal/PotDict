@@ -11,12 +11,14 @@
 
 <body>
     <div>
-        <h1>Sorry, No definition for "%Q"</h1>
-        <a href="https://bing.com/search?q=%Q">Search "%Q" using Bing</a>
+        <font size="4"><a href="https://bing.com/search?q=%Q">Search "%Q" using Bing</a></font>
+        <br>
         <form action="http://%H:%P/search" method="get">
             <input type="text" id="search" name="q" placeholder="Search..." value="%Q">
             <button type="submit">Sumbit</button>
         </form>
+        <h2>Sorry, No definition for "%Q"... Are you looking for:</h2>
+        %S
     </div>
 </body>
 

@@ -13,10 +13,11 @@
         "timeout" : 7,
         "max_retries" : -1
     },
-    "dictionaries": {
-        "paths": [
+    "search": {
+        "dict_paths": [
             "./dicts/Oxford Dictionary of English 2nd.mdx"
-        ]
+        ],
+        "similar_words_shown" : 10
     },
     "log": {
         "log_level": "DEBUG",

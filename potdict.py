@@ -3,6 +3,7 @@ from urllib.parse import urlparse, parse_qs
 import tkinter as tk
 from tkinter import messagebox
 from readmdict import MDX
+from Levenshtein import distance
 import threading
 from datetime import datetime
 import json
@@ -49,8 +50,9 @@ class PotDict(tk.Tk):
         self.TIMEOUT = network['timeout']
         self.MAX_RETRIES = network['max_retries']
         
-        dicts = self.settings['dictionaries']
-        self.DICT_PATH = dicts['paths'][0]
+        search = self.settings['search']
+        self.DICT_PATH = search['dict_paths'][0]
+        self.SIMILAR_WORD_SHOWN = search['similar_words_shown']
         
         log = self.settings['log']
         self.LOG_LEVEL = log['log_level']
@@ -232,6 +234,20 @@ class PotDict(tk.Tk):
                 t = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 f.write(f'[{t}] [{level}] {msg}\n')
 
+    
+    def get_similar_words(self, word, headwords):
+        similar_words = {}
+        for headword in headwords:
+            headword = headword.decode('utf-8')
+            sim = distance(word, headword)
+            if len(similar_words) < self.SIMILAR_WORD_SHOWN:
+                similar_words[headword] = sim
+            else:
+                similar_words = dict(sorted(similar_words.items(), key=lambda item: item[1]))
+                del similar_words[list(similar_words.keys())[-1]]
+                similar_words[headword] = sim
+        return list(similar_words.keys())
+
     def search(self, query_word):
         # 1 -> found
         # 0 -> not found
@@ -245,7 +261,7 @@ class PotDict(tk.Tk):
                 word_index = self.headwords.index(query_word.lower().encode('utf-8'))
             except ValueError:
                 self.log(f'No definition for \"{query_word}\"', 'w')
-                return None
+                return self.get_similar_words(query_word, self.headwords)
         word,html = self.items[word_index]
 
         word,html = word.decode('utf-8'), html.decode('utf-8')
@@ -308,11 +324,20 @@ class PotDict(tk.Tk):
                     header = self.HEADER_200
                 elif path[0] == 'search' and query_word:
                     result = self.search(query_word)
-                    if result:
+                    if str(type(result)) == '<class \'str\'>':
                         response = self.result_template
                         header = self.HEADER_200
                     else:
                         response = self.not_found_template
+                        similar_list = ''
+                        for word in result:
+                            similar_list += f'''
+                                            <font size=\"4\">
+                                                    <a href=\"http://{self.HOST}:{self.PORT}/search/?q={word}\">    {word}</a>
+                                            </font>
+                                            <br>
+                                            '''
+                        response = response.replace('%S', similar_list)
                         header = self.HEADER_200
                 else:
                     self.log('Bad Request', 'e', output=False)

@@ -10,7 +10,7 @@ PotDict works pretty well on Windows64, but I haven't tested it on any other pla
 
 If you want to run the source code, the following libraries will be required:
 
--  `readmdict`
+- `readmdict`
 - `pyinstaller`
 
 ## Installation:
@@ -25,7 +25,7 @@ Download the zip file and extract the content to whatever place you feel like. T
 
 ### Basic usage:
 
-![Screenshot](E:\Files\programming\python\PotDict\readme_files\img1.png)
+![Screenshot](./readme_files\img1.png)
 
 1. Exit PotDict
 2. Restart listener
@@ -35,29 +35,29 @@ Copy `127.0.0.1:65432` or other url displayed and paste it into your browser.
 
 If you saw something like this, it means PotDict is running:
 
-![](E:\Files\programming\python\PotDict\readme_files\img2.png)
+![](./readme_files\img2.png)
 
-![image-20250505220606455](C:\Users\limuzhi\AppData\Roaming\Typora\typora-user-images\image-20250505220606455.png)
+### Setup in PotPlayer
 
-Open PotPlay, open Preferences:
+Open PotPlayer, open Preferences:
 
-<img src="E:\Files\programming\python\PotDict\readme_files\img3.png"  />
+<img src="./readme_files\img3.png"  />
 
 Go to Subtitles > Word Searching:
 
-![](E:\Files\programming\python\PotDict\readme_files\img4.png)
+![](./readme_files\img4.png)
 
 Click "Add" and enter PotDict and `http://127.0.0.1:65432/?q=%%SS`. Remember to replace this url with the actual url you are using:
 
-![](E:\Files\programming\python\PotDict\readme_files\img5.png)
+![](./readme_files\img5.png)
 
 Select PotDict and click "Up" until it's on the top. This way, PotDict will be the default word searching engine for PotPlayer:
 
-![](E:\Files\programming\python\PotDict\readme_files\img6.png)
+![](./readme_files\img6.png)
 
 After saving you changes, click a word in the subtitle. If you see a page like this, PotDict is working properly:
 
-![](E:\Files\programming\python\PotDict\readme_files\img7.png)
+![](./readme_files\img7.png)
 
 ### Settings:
 
@@ -81,10 +81,11 @@ This is an example of `settings.json`
         "timeout" : 7,
         "max_retries" : -1
     },
-    "dictionaries": {
-        "paths": [
+    "search": {
+        "dict_paths": [
             "./dicts/Oxford Dictionary of English 2nd.mdx"
-        ]
+        ],
+        "similar_words_shown" : 10
     },
     "log": {
         "log_level": "DEBUG",
@@ -114,11 +115,12 @@ This is an example of `settings.json`
 | timeout     | number | Connection timeout.                                          |
 | max_retries | number | Maximum retries, set to -1 for infinite retries.             |
 
-#### dictionaries
+#### search
 
-| Options | Type          | Description                                                  |
-| ------- | ------------- | ------------------------------------------------------------ |
-| paths   | array{string} | A list of dictionaries to be loaded.<br />(I hadn't developed the multi-dict feature, so only the first dictionary will be loaded.) |
+| Options             | Type          | Description                                                  |
+| ------------------- | ------------- | ------------------------------------------------------------ |
+| dict_paths          | array{string} | A list of dictionaries to be loaded.<br />(I hadn't developed the multi-dict feature, so only the first dictionary will be loaded.) |
+| similar_words_shown | number        | number of similar words to be shown when definition was not found. |
 
 #### log
 
