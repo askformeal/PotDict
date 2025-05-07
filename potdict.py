@@ -11,7 +11,7 @@ import json
 import os
 import sys
 
-# TODO add the "are you searching for thing", add multi dict, strip keywords, add timeout
+# TODO add multi dict
 
 class PotDict(tk.Tk):
     def __init__(self):
