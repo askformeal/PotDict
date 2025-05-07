@@ -16,7 +16,7 @@ class PotDict(tk.Tk):
     def __init__(self):
         super().__init__()
         
-        self.VERSION = 'v0.2.0'
+        self.VERSION = 'v0.2.1'
     
         self.file_paths = {
             'homepage_html' : './data/html/homepage.html',

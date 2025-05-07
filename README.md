@@ -1,4 +1,4 @@
-# PotDict V0.2.0
+# PotDict V0.2.1
 
 PotDict is a addon dictionary application for PotPlayer.
 
@@ -21,7 +21,7 @@ Download the zip file and extract the content to whatever place you feel like. T
 
 ### Basic usage:
 
-![Screenshot](./readme_files\img1.png)
+<img src="./readme_files/img1.png"/>
 
 1. Exit PotDict
 2. Restart listener
@@ -31,29 +31,29 @@ Copy `127.0.0.1:65432` or other url displayed and paste it into your browser.
 
 If you saw something like this, it means PotDict is running:
 
-![](./readme_files\img2.png)
+<img src="./readme_files/img2.png"/>
 
 ### Setup in PotPlayer
 
 Open PotPlayer, open Preferences:
 
-<img src="./readme_files\img3.png"  />
+<img src="./readme_files/img3.png"/>
 
 Go to Subtitles > Word Searching:
 
-![](./readme_files\img4.png)
+<img src="./readme_files/img4.png"/>
 
 Click "Add" and enter PotDict and `http://127.0.0.1:65432/?q=%%SS`. Remember to replace this url with the actual url you are using:
 
-![](./readme_files\img5.png)
+<img src="./readme_files/img5.png"/>
 
 Select PotDict and click "Up" until it's on the top. This way, PotDict will be the default word searching engine for PotPlayer:
 
-![](./readme_files\img6.png)
+<img src="./readme_files/img6.png"/>
 
 After saving you changes, click a word in the subtitle. If you see a page like this, PotDict is working properly:
 
-![](./readme_files\img7.png)
+<img src="./readme_files/img7.png"/>
 
 ### Settings:
 
