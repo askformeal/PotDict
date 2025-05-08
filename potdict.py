@@ -11,8 +11,6 @@ import json
 import os
 import sys
 
-# TODO add multi dict
-
 class Dict():
     def __init__(self, name, headwords, items):
         self.name = name
@@ -37,7 +35,7 @@ class PotDict(tk.Tk):
     def __init__(self):
         super().__init__()
         
-        self.VERSION = 'v0.4.0'
+        self.VERSION = 'v0.5.0'
     
         self.file_paths = {
             'homepage_html' : './data/html/homepage.html',
@@ -45,6 +43,8 @@ class PotDict(tk.Tk):
             'not_found_html' : './data/html/not_found.html',
             '400_html' : './data/html/400.html',
             'default_settings' : './data/default_settings.json',
+            'ico' : './data/ico.ico',
+            'font' : './data/ZQKfreefont-2.otf',
         }
 
         for k, v in self.file_paths.items():
@@ -56,10 +56,6 @@ class PotDict(tk.Tk):
         self.retries_left = self.MAX_RETRIES
 
         self.code = 0
-
-        if not os.path.exists('./app.log'):
-            with open('./app.log', 'w') as f:
-                self.log('Log file app.log not found, created', 'i')
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -82,6 +78,8 @@ class PotDict(tk.Tk):
         self.RESIZE = window['resize']
         self.START_POS_X = window['start_pos_x']
         self.START_POS_Y = window['start_pos_y']
+        self.FONT = window['font']
+        self.FONT_SIZE = window['font_size']
         
         """ self.BG_COLOR = window['color']['bg_color']
         self.FONT_COLOR = window['color']['font_color']
@@ -224,6 +222,10 @@ class PotDict(tk.Tk):
             self.PRINT_LOG
         except AttributeError:
             self.PRINT_LOG = print_log
+
+        if not os.path.exists('./app.log'):
+            with open('./app.log', 'w') as f:
+                self.log('Log file app.log not found, created', 'i')
 
         size = os.stat('./app.log').st_size
 
@@ -433,6 +435,11 @@ class PotDict(tk.Tk):
         self.stop_listener()
         self.start_listener()
     
+    def search_in_browser(self, event=None):
+        query_word = self.search_entry.get()
+        if len(query_word) > 0:
+            webbrowser.open(f'http://{self.HOST}:{self.PORT}/search/?q={query_word}')
+
     def open_homepage(self):
         webbrowser.open(f'http://{self.HOST}:{self.PORT}')
 
@@ -477,9 +484,11 @@ By Demons1014'''
 
         # Window
         self.title("PotDict - Demons1014")
-        self.iconbitmap('./ico.ico')
+        self.iconbitmap(self.file_paths['ico'])
         self.geometry(f'{self.WIDTH}x{self.HEIGHT}+{self.START_POS_X}+{self.START_POS_Y}')
         self.resizable(self.RESIZE,self.RESIZE)
+        self.config(bg='LightGrey')
+        self.option_add("*Font", f"{self.FONT} {self.FONT_SIZE}")
 
         # Events
         self.protocol('WM_DELETE_WINDOW', self.exit_server)
@@ -512,35 +521,46 @@ By Demons1014'''
         help_menu.add_separator()
         help_menu.add_command(label='About', command=self.show_about)
 
+        # Search entry
+        search_fr = tk.Frame(self)
+        search_fr.pack(fill='x', padx=5, pady=5)
+
+        self.search_entry = tk.Entry(search_fr)
+        self.search_entry.bind('<Return>', self.search_in_browser)
+        self.search_entry.pack(side='left', expand=True, fill='both', padx=(0,5))
+
+        search_button = tk.Button(search_fr, text="Search", command=self.search_in_browser)
+        search_button.pack(side='left')
+
         # Buttons
         buttons_fr = tk.Frame(self)
-        buttons_fr.pack(fill='x')
+        buttons_fr.pack(fill='x', padx=5, pady=(0,5))
 
         exit_button = tk.Button(buttons_fr, text='Exit', relief='raised', command=self.exit_server)
-        exit_button.pack(side='left', expand=True, fill='x')
+        exit_button.pack(side='left', expand=True, fill='x', padx=(0,5))
 
         restart_button = tk.Button(buttons_fr, text='Restart', relief='raised', command=self.restart_listener)
         restart_button.pack(side='left', expand=True, fill='x')
         
         pause_button = tk.Button(buttons_fr, text='Pause', relief='raised', command=self.pause_listener)
-        pause_button.pack(side='left', expand=True, fill='x')
+        pause_button.pack(side='left', expand=True, fill='x', padx=(5, 0))
 
         # ListBox
         listbox_fr = tk.Frame(self)
-        listbox_fr.pack(fill='both', expand=True)
+        listbox_fr.pack(fill='both', expand=True, pady=(0,5))
         
         self.listbox = tk.Listbox(listbox_fr)
-        self.listbox.pack(side='left', fill='both', expand=True)
+        self.listbox.pack(side='left', fill='both', expand=True, padx=(5,0))
 
         scrollbar = tk.Scrollbar(listbox_fr)
-        scrollbar.pack(side='right', fill='y')
+        scrollbar.pack(side='right', fill='y', padx=(0, 5))
 
         self.listbox.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=self.listbox.yview)
 
         # Label
         label = tk.Label(self, text=f'PotDict {self.VERSION}\nBy Demons1014')
-        label.pack(fill='both', expand=True)
+        label.pack(fill='both', expand=True, padx=5, pady=(0,5))
 
     def main(self):
         

@@ -1,10 +1,12 @@
 {
     "window": {
-        "width": 300,
-        "height": 300,
+       "width": 290,
+        "height": 330,
         "start_pos_y": 100,
         "start_pos_x": 100,
-        "resize": true
+        "resize": true,
+        "font" : "Consolas",
+        "font_size" : 10
     },
     "network": {
         "host": "127.0.0.1",

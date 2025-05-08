@@ -1,18 +1,26 @@
 {
     "window": {
-        "width": 300,
-        "height": 300,
+       "width": 290,
+        "height": 330,
         "start_pos_y": 100,
         "start_pos_x": 100,
-        "resize": true
+        "resize": true,
+        "font" : "Consolas",
+        "font_size" : 10
     },
     "network": {
         "host": "127.0.0.1",
         "port": 65432,
-        "max_connect": 5
+        "max_connect": 5,
+        "timeout" : 7,
+        "max_retries" : -1
     },
-    "dictionaries": {
-        "paths": []
+    "search": {
+        "dict_paths": [
+            "./dicts/Oxford Dictionary of English 2nd.mdx",
+            "./dicts/Webster's Advanced Learner's Dictionary.mdx"
+        ],
+        "similar_words_shown" : 10
     },
     "log": {
         "log_level": "DEBUG",

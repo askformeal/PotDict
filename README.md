@@ -1,4 +1,4 @@
-# PotDict V0.3.0
+# PotDict V0.5.0
 
 PotDict is a addon dictionary application for PotPlayer.
 
@@ -113,10 +113,10 @@ This is an example of `settings.json`
 
 #### search
 
-| Options             | Type          | Description                                                                                                                         |
-| ------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| dict_paths          | array{string} | A list of dictionaries to be loaded.<br />(I hadn't developed the multi-dict feature, so only the first dictionary will be loaded.) |
-| similar_words_shown | number        | number of similar words to be shown when definition was not found.                                                                  |
+| Options             | Type          | Description                                                        |
+| ------------------- | ------------- | ------------------------------------------------------------------ |
+| dict_paths          | array{string} | A list of dictionaries to be loaded.                               |
+| similar_words_shown | number        | number of similar words to be shown when definition was not found. |
 
 #### log
 
