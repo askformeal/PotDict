@@ -15,7 +15,8 @@
     },
     "search": {
         "dict_paths": [
-            "./dicts/Oxford Dictionary of English 2nd.mdx"
+            "./dicts/Oxford Dictionary of English 2nd.mdx",
+            "./dicts/Webster's Advanced Learner's Dictionary.mdx"
         ],
         "similar_words_shown" : 10
     },

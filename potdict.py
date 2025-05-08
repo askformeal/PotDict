@@ -13,11 +13,31 @@ import sys
 
 # TODO add multi dict
 
+class Dict():
+    def __init__(self, name, headwords, items):
+        self.name = name
+        self.headwords = headwords
+        self.items = items
+
+    def search(self, query_word):
+        query_word = query_word.strip()
+        try:
+            index = self.headwords.index(query_word.encode('utf-8'))
+        except ValueError:
+            try:
+                index = self.headwords.index(query_word.lower().encode('utf-8'))
+            except ValueError:
+                return None
+        
+        word, html = self.items[index]
+        html = html.decode('utf-8')
+        return html
+
 class PotDict(tk.Tk):
     def __init__(self):
         super().__init__()
         
-        self.VERSION = 'v0.3.0'
+        self.VERSION = 'v0.4.0'
     
         self.file_paths = {
             'homepage_html' : './data/html/homepage.html',
@@ -32,34 +52,6 @@ class PotDict(tk.Tk):
         
         self.load_files()
 
-        window = self.settings['window']
-        self.WIDTH = window['width']
-        self.HEIGHT = window['height']
-        self.RESIZE = window['resize']
-        self.START_POS_X = window['start_pos_x']
-        self.START_POS_Y = window['start_pos_y']
-        
-        """ self.BG_COLOR = window['color']['bg_color']
-        self.FONT_COLOR = window['color']['font_color']
-        self.BG_COLOR_CLICK = window['color']['bg_color_click']
-        self.FONT_COLOR_CLICK = window['color']['font_color_click'] """
-        
-        network = self.settings['network']
-        self.HOST = network['host']
-        self.PORT = network['port']
-        self.MAX_CONNECT = network['max_connect']
-        self.TIMEOUT = network['timeout']
-        self.MAX_RETRIES = network['max_retries']
-        
-        search = self.settings['search']
-        self.DICT_PATH = search['dict_paths'][0]
-        self.SIMILAR_WORD_SHOWN = search['similar_words_shown']
-        
-        log = self.settings['log']
-        self.LOG_LEVEL = log['log_level']
-        self.PRINT_LOG = log['print_log']
-        self.LOG_MAX_BYTES = log['log_max_bytes']
-
         self.handling = False
         self.retries_left = self.MAX_RETRIES
 
@@ -70,8 +62,6 @@ class PotDict(tk.Tk):
                 self.log('Log file app.log not found, created', 'i')
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.headwords = [*MDX(self.DICT_PATH)]
-        self.items = [*MDX(self.DICT_PATH).items()]
 
         self.HEADER_200 = f'''HTTP/1.1 200 OK
         Content-Type: text/html; charset=UTF-8
@@ -83,24 +73,68 @@ class PotDict(tk.Tk):
 
         self.running = True
 
-        self.setup_gui()
+        self.setup_tk()
 
+    def load_settings(self, settings):
+        window = settings['window']
+        self.WIDTH = window['width']
+        self.HEIGHT = window['height']
+        self.RESIZE = window['resize']
+        self.START_POS_X = window['start_pos_x']
+        self.START_POS_Y = window['start_pos_y']
+        
+        """ self.BG_COLOR = window['color']['bg_color']
+        self.FONT_COLOR = window['color']['font_color']
+        self.BG_COLOR_CLICK = window['color']['bg_color_click']
+        self.FONT_COLOR_CLICK = window['color']['font_color_click'] """
+        
+        network = settings['network']
+        self.HOST = network['host']
+        self.PORT = network['port']
+        self.MAX_CONNECT = network['max_connect']
+        self.TIMEOUT = network['timeout']
+        self.MAX_RETRIES = network['max_retries']
+        
+        search = settings['search']
+        self.DICT_PATHS = search['dict_paths']
+        self.SIMILAR_WORD_SHOWN = search['similar_words_shown']
+        
+        log = settings['log']
+        self.LOG_LEVEL = log['log_level']
+        self.PRINT_LOG = log['print_log']
+        self.LOG_MAX_BYTES = log['log_max_bytes']
+        
     def load_files(self):
         try:
             with open('./settings.json', 'r') as f:
-                self.settings = json.load(f)
+                settings = json.load(f)
 
         except FileNotFoundError:
-            self.settings = self.restore_default_settings()
+            settings = self.restore_default_settings()
             self.log("File not found: settings.json, create default setting file", 'i',
-                     max_log_bytes=self.settings['log']['log_max_bytes'],
-                     log_level=self.settings['log']['log_level'],
-                     print_log=self.settings['log']['print_log'],)
+                     max_log_bytes=settings['log']['log_max_bytes'],
+                     log_level=settings['log']['log_level'],
+                     print_log=settings['log']['print_log'],)
         except json.decoder.JSONDecodeError:
             self.log("Invalid index in settings.json", 'c',
                         log_level='DEBUG',
                         print_log=False)
             sys.exit(1)
+
+        self.load_settings(settings)
+
+        self.dicts = []
+        self.headwords = []
+        for path in self.DICT_PATHS:
+            if not os.path.exists(path):
+                self.log(f'Dictionary not found: {path}', 'c')
+                self.exit_server(1)
+            name = os.path.splitext(os.path.basename(path))[0]
+            headwords = [*MDX(path)]
+            items = [*MDX(path).items()]
+            self.dicts.append(Dict(name, headwords, items))
+            self.headwords += headwords
+        self.headwords = set(self.headwords)
 
         try:
             with open(self.file_paths['homepage_html'], 'r', encoding='utf-8') as f:
@@ -250,23 +284,25 @@ class PotDict(tk.Tk):
         return list(similar_words.keys())
 
     def search(self, query_word):
-        # 1 -> found
-        # 0 -> not found
-        query_word = query_word.strip()
-        self.log(f'Searching {query_word}...', 'd', output=True)
-        try:
-            word_index =self.headwords.index(query_word.encode('utf-8'))
-        except ValueError:
-            self.log(f'No definition for \"{query_word}\", now searching \"{query_word.lower()}\"', 'w')
-            try:
-                word_index = self.headwords.index(query_word.lower().encode('utf-8'))
-            except ValueError:
-                self.log(f'No definition for \"{query_word}\"', 'w')
-                return self.get_similar_words(query_word, self.headwords)
-        word,html = self.items[word_index]
-
-        word,html = word.decode('utf-8'), html.decode('utf-8')
-        return html
+        results = ''
+        for dict in self.dicts:
+            name = dict.name
+            self.log(f'Searching {query_word} in {name}...', 'd')
+            result = dict.search(query_word)
+            if result:
+                self.log(f'Found', 'd')
+                results += f'''
+                            <h2 style="color: red;">{name}</h2>
+                            <hr color="red" size="3"/>
+                            {result}
+                            '''
+            else:
+                self.log(f'Not found', 'd')
+        if len(results) == 0:
+            self.log(f'No definition for \"{query_word}\"', 'd')
+            return self.get_similar_words(query_word, self.headwords)
+        else:
+            return results
 
     def super_listener(self, start_time):
         if self.retries_left == 0:
@@ -396,7 +432,10 @@ class PotDict(tk.Tk):
         self.log('Restarting...\n', 'i', output=True)
         self.stop_listener()
         self.start_listener()
-        
+    
+    def open_homepage(self):
+        webbrowser.open(f'http://{self.HOST}:{self.PORT}')
+
     def open_settings(self):
         try:
             os.startfile('./settings.json')
@@ -434,7 +473,7 @@ By Demons1014'''
         
         return widget
 
-    def setup_gui(self):
+    def setup_tk(self):
 
         # Window
         self.title("PotDict - Demons1014")
@@ -459,6 +498,7 @@ By Demons1014'''
         file_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label='File', menu=file_menu)
 
+        file_menu.add_command(label="Open Homepage", command=self.open_homepage)
         file_menu.add_command(label='Open settings.json', command=self.open_settings)
         file_menu.add_command(label='Restart listener', accelerator='r', command=self.restart_listener)
         file_menu.add_command(label='Start/Stop Listener', accelerator='p', command=self.pause_listener)

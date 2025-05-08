@@ -12,9 +12,7 @@
         "max_connect": 5
     },
     "dictionaries": {
-        "paths": [
-            "./dicts/Oxford Dictionary of English 2nd.mdx"
-        ]
+        "paths": []
     },
     "log": {
         "log_level": "DEBUG",
