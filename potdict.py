@@ -35,7 +35,7 @@ class PotDict(tk.Tk):
     def __init__(self):
         super().__init__()
         
-        self.VERSION = 'v0.5.1'
+        self.VERSION = 'v0.6.0'
     
         self.file_paths = {
             'homepage_html' : './data/html/homepage.html',
@@ -51,6 +51,8 @@ class PotDict(tk.Tk):
             self.file_paths[k] = self.convert_path(v)
         
         self.load_files()
+        self.HISTORY_PATH = './history.txt'
+        self.LOG_PATH = './app.log'
 
         self.handling = False
         self.retries_left = self.MAX_RETRIES
@@ -225,15 +227,15 @@ class PotDict(tk.Tk):
         except AttributeError:
             self.PRINT_LOG = print_log
 
-        if not os.path.exists('./app.log'):
-            with open('./app.log', 'w', encoding='utf-8') as f:
+        if not os.path.exists(self.LOG_PATH):
+            with open(self.LOG_PATH, 'w', encoding='utf-8') as f:
                 self.log('Log file app.log not found, created', 'i')
 
-        size = os.stat('./app.log').st_size
+        size = os.stat(self.LOG_PATH).st_size
 
         try:
             if size > self.LOG_MAX_BYTES:
-                with open('./app.log', 'w', encoding='utf-8') as f:
+                with open(self.LOG_PATH, 'w', encoding='utf-8') as f:
                     pass
                 self.log('Reach max log size, log cleared', 'd')
         except Exception:
@@ -269,7 +271,7 @@ class PotDict(tk.Tk):
             if nl:
                 msg += '\n'
             
-            with open('./app.log', 'a', encoding='utf-8') as f:
+            with open(self.LOG_PATH, 'a', encoding='utf-8') as f:
                 t = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 f.write(f'[{t}] [{level}] {msg}\n')
 
@@ -289,6 +291,22 @@ class PotDict(tk.Tk):
 
     def search(self, query_word):
         results = ''
+        last = ''
+        blank_file = False
+        if not os.path.exists(self.HISTORY_PATH):
+            with open(self.HISTORY_PATH, 'w') as f:
+                self.log('History file not found, created', 'i')
+        with open(self.HISTORY_PATH, 'r', encoding='utf-8') as f:
+            try:
+                last = f.readlines()[-1].split()[-1]
+            except IndexError:
+                blank_file = True
+        
+        with open(self.HISTORY_PATH, 'a', encoding='utf-8') as f:
+            if last != query_word or blank_file:
+                t = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                f.write(f'{t} | {query_word}\n')
+        
         for dict in self.dicts:
             name = dict.name
             self.log(f'Searching {query_word} in {name}...', 'd')

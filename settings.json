@@ -20,6 +20,7 @@
             "./dicts/Oxford Dictionary of English 2nd.mdx",
             "./dicts/Webster's Advanced Learner's Dictionary.mdx"
         ],
+        "history_path" : "./history.txt",
         "similar_words_shown" : 10
     },
     "log": {

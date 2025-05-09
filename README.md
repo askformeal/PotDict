@@ -1,4 +1,4 @@
-# PotDict V0.5.1
+# PotDict V0.6.0		
 
 PotDict is a addon dictionary application for PotPlayer.
 
@@ -100,6 +100,8 @@ This is an example of `settings.json`
 | start_pos_x | number     | Initial distance between the left boarder of window and the screen.  |
 | start_pos_y | number     | Initial distance between the upper boarder of window and the screen. |
 | resize      | true/false | Whether the user will be able to resize the window.                  |
+| font        | string     | GUI font                                                             |
+| font_size   | number     | GUI font size                                                        |
 
 #### network
 
@@ -116,6 +118,7 @@ This is an example of `settings.json`
 | Options             | Type          | Description                                                        |
 | ------------------- | ------------- | ------------------------------------------------------------------ |
 | dict_paths          | array{string} | A list of dictionaries to be loaded.                               |
+| history_path        | string        | path to search history file                                        |
 | similar_words_shown | number        | number of similar words to be shown when definition was not found. |
 
 #### log
