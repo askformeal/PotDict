@@ -563,8 +563,12 @@ By Demons1014'''
         self.text.pack(side='top', fill='both', expand=True, padx=(5,0))
 
         # Label
-        label = tk.Label(self, text=f'PotDict {self.VERSION}\nBy Demons1014', height=3)
-        label.pack(fill='both', padx=5, pady=(0,5))
+        label = tk.Label(self, text=f'PotDict {self.VERSION}\nBy Demons1014', 
+                        height=5, 
+                        bg='DimGray', fg='Lime', 
+                        relief='groove', bd=3, 
+                        font=(self.FONT, self.FONT_SIZE, 'bold'))
+        label.pack(fill='both', padx=20, pady=(5,10))
 
     def main(self):
         
