@@ -35,7 +35,7 @@ class PotDict(tk.Tk):
     def __init__(self):
         super().__init__()
         
-        self.VERSION = 'v0.6.0'
+        self.VERSION = 'v0.7.0'
     
         self.file_paths = {
             'homepage_html' : './data/html/homepage.html',
@@ -184,14 +184,7 @@ class PotDict(tk.Tk):
             base_path = sys._MEIPASS
         else:
             base_path = os.path.abspath('.')
-            # base_path = os.getcwd()
-        # path = path.replace('/', '\\')
         path_result = os.path.join(base_path, path)
-        # path = path.replace('.\\', '')
-        # path = path.replace('\\', '/')
-
-        # print(path)
-        # self.log(f'Convert {path} to {path_result}', 'd')
         return path_result
 
     def display(self, text):
@@ -459,6 +452,7 @@ class PotDict(tk.Tk):
         query_word = self.search_entry.get()
         if len(query_word) > 0:
             webbrowser.open(f'http://{self.HOST}:{self.PORT}/search/?q={query_word}')
+        self.search_entry.delete(0, 'end')
 
     def open_homepage(self):
         webbrowser.open(f'http://{self.HOST}:{self.PORT}')
@@ -500,6 +494,9 @@ By Demons1014'''
         
         return widget
 
+    def unselect(self, event):
+        self.listbox.selection_clear(0, 'end')
+        
     def setup_tk(self):
 
         # Window
@@ -548,6 +545,7 @@ By Demons1014'''
         self.search_entry = tk.Entry(search_fr)
         self.search_entry.bind('<Return>', self.search_in_browser)
         self.search_entry.pack(side='left', expand=True, fill='both', padx=(0,5))
+        self.search_entry.focus_set()
 
         search_button = tk.Button(search_fr, text="Search", command=self.search_in_browser)
         search_button.pack(side='left')
@@ -569,8 +567,9 @@ By Demons1014'''
         listbox_fr = tk.Frame(self)
         listbox_fr.pack(fill='both', expand=True, pady=(0,5))
         
-        self.listbox = tk.Listbox(listbox_fr)
+        self.listbox = tk.Listbox(listbox_fr, activestyle='none')
         self.listbox.pack(side='left', fill='both', expand=True, padx=(5,0))
+        self.listbox.bind("<<ListboxSelect>>", self.unselect)
 
         scrollbar = tk.Scrollbar(listbox_fr)
         scrollbar.pack(side='right', fill='y', padx=(0, 5))
