@@ -35,7 +35,7 @@ class PotDict(tk.Tk):
     def __init__(self):
         super().__init__()
         
-        self.VERSION = 'v0.5.0'
+        self.VERSION = 'v0.5.1'
     
         self.file_paths = {
             'homepage_html' : './data/html/homepage.html',
@@ -104,7 +104,7 @@ class PotDict(tk.Tk):
         
     def load_files(self):
         try:
-            with open('./settings.json', 'r') as f:
+            with open('./settings.json', 'r', encoding='utf-8') as f:
                 settings = json.load(f)
 
         except FileNotFoundError:
@@ -128,8 +128,10 @@ class PotDict(tk.Tk):
                 self.log(f'Dictionary not found: {path}', 'c')
                 self.exit_server(1)
             name = os.path.splitext(os.path.basename(path))[0]
-            headwords = [*MDX(path)]
-            items = [*MDX(path).items()]
+
+            headwords = [*MDX(path, encoding='utf-8')]
+            items = [*MDX(path, encoding='utf-8').items()]
+            
             self.dicts.append(Dict(name, headwords, items))
             self.headwords += headwords
         self.headwords = set(self.headwords)
@@ -164,9 +166,9 @@ class PotDict(tk.Tk):
 
     def restore_default_settings(self):
         try:
-            with open(self.file_paths['default_settings'], 'r') as f1:
+            with open(self.file_paths['default_settings'], 'r', encoding='utf-8') as f1:
                 settings = json.load(f1)
-                with open('settings.json', 'w') as f2:
+                with open('settings.json', 'w', encoding='utf-8') as f2:
                     json.dump(settings, f2, indent=4)
                 return settings
         except:
@@ -224,14 +226,14 @@ class PotDict(tk.Tk):
             self.PRINT_LOG = print_log
 
         if not os.path.exists('./app.log'):
-            with open('./app.log', 'w') as f:
+            with open('./app.log', 'w', encoding='utf-8') as f:
                 self.log('Log file app.log not found, created', 'i')
 
         size = os.stat('./app.log').st_size
 
         try:
             if size > self.LOG_MAX_BYTES:
-                with open('./app.log', 'w') as f:
+                with open('./app.log', 'w', encoding='utf-8') as f:
                     pass
                 self.log('Reach max log size, log cleared', 'd')
         except Exception:
