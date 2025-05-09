@@ -2,6 +2,7 @@ import socket
 from urllib.parse import urlparse, parse_qs
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import scrolledtext
 from readmdict import MDX
 from Levenshtein import distance
 import webbrowser
@@ -189,12 +190,12 @@ class PotDict(tk.Tk):
 
     def display(self, text):
         try:
-            self.listbox.insert('end', text)
+            self.text.config(state='normal')
         except AttributeError:
-            self.log("ListBox not found, display canceled", 'w', output=False)
-        if text[-1] == '\n':
-            self.listbox.insert('end','')
-        self.listbox.see('end')
+            self.log("ScrolledText not found, display canceled", 'w', output=False)
+        self.text.insert('end', f'{text}\n')
+        self.text.see('end')
+        self.text.config(state='disabled')
 
     def log(self, msg, level = 'd', output=False, nl = False, max_log_bytes=None, log_level=None, print_log=None):
         """ 
@@ -337,7 +338,7 @@ class PotDict(tk.Tk):
         self.server_socket.bind((self.HOST, self.PORT))
 
         self.server_socket.listen(self.MAX_CONNECT)
-        self.log(f'listening at {self.HOST}:{self.PORT}...', 'i', output=True)
+        self.log(f'Listening at {self.HOST}:{self.PORT}...', 'i', output=True)
 
         while True:
             try:
@@ -472,31 +473,11 @@ class PotDict(tk.Tk):
 By Demons1014'''
         messagebox.showinfo(title='About', message = about)
 
-    def set_color(self, widget):
-        try:
-            widget.config(bg = self.BG_COLOR)
-        except Exception as e:
-            self.log(f"Config failed: {e}", 'd')
-        try:
-            widget.config(fg = self.FONT_COLOR)
-        except Exception as e:
-            self.log(f"Config failed: {e}", 'd')
+    def clear_screen(self):
+        self.text.config(state='normal')
+        self.text.delete("1.0", 'end')
+        self.text.config(state='disabled')
 
-        try:
-            widget.config(activebackground=self.BG_COLOR_CLICK)
-        except Exception as e:
-            self.log(f"Config failed: {e}", 'd')
-
-        try:
-            widget.config(activeforground = self.FONT_COLOR_CLICK)
-        except Exception as e:
-            self.log(f"Config failed: {e}", 'd')
-        
-        return widget
-
-    def unselect(self, event):
-        self.listbox.selection_clear(0, 'end')
-        
     def setup_tk(self):
 
         # Window
@@ -531,6 +512,13 @@ By Demons1014'''
         file_menu.add_separator()
         file_menu.add_command(label='Exit', accelerator='q', command=self.exit_server)
 
+
+        edit_menu=tk.Menu(menu_frame, tearoff=False)
+        menu.add_cascade(label='Edit', menu=edit_menu)
+
+        edit_menu.add_command(label='Clear screen', accelerator='c', command=self.clear_screen)
+
+
         help_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label='Help', menu=help_menu)
 
@@ -539,7 +527,7 @@ By Demons1014'''
         help_menu.add_command(label='About', command=self.show_about)
 
         # Search entry
-        search_fr = tk.Frame(self)
+        search_fr = tk.Frame(self, bg='LightGrey')
         search_fr.pack(fill='x', padx=5, pady=5)
 
         self.search_entry = tk.Entry(search_fr)
@@ -551,41 +539,39 @@ By Demons1014'''
         search_button.pack(side='left')
 
         # Buttons
-        buttons_fr = tk.Frame(self)
-        buttons_fr.pack(fill='x', padx=5, pady=(0,5))
+        buttons_fr = tk.Frame(self, bg='LightGrey')
+        buttons_fr.pack(fill='x', padx=5, pady=(5,5))
 
         exit_button = tk.Button(buttons_fr, text='Exit', relief='raised', command=self.exit_server)
         exit_button.pack(side='left', expand=True, fill='x', padx=(0,5))
 
         restart_button = tk.Button(buttons_fr, text='Restart', relief='raised', command=self.restart_listener)
-        restart_button.pack(side='left', expand=True, fill='x')
+        restart_button.pack(side='left', expand=True, fill='x', padx=(0,5))
         
         pause_button = tk.Button(buttons_fr, text='Pause', relief='raised', command=self.pause_listener)
-        pause_button.pack(side='left', expand=True, fill='x', padx=(5, 0))
+        pause_button.pack(side='left', expand=True, fill='x', padx=(0, 5))
 
-        # ListBox
-        listbox_fr = tk.Frame(self)
-        listbox_fr.pack(fill='both', expand=True, pady=(0,5))
+        clear_button = tk.Button(buttons_fr, text='Clear', relief='raised', command=self.clear_screen)
+        clear_button.pack(side='left', expand=True, fill='x')
+
+        # text
+        text_fr = tk.Frame(self)
+        text_fr.pack(side='top', fill='both', expand=True, pady=(0,5))
         
-        self.listbox = tk.Listbox(listbox_fr, activestyle='none')
-        self.listbox.pack(side='left', fill='both', expand=True, padx=(5,0))
-        self.listbox.bind("<<ListboxSelect>>", self.unselect)
-
-        scrollbar = tk.Scrollbar(listbox_fr)
-        scrollbar.pack(side='right', fill='y', padx=(0, 5))
-
-        self.listbox.config(yscrollcommand=scrollbar.set)
-        scrollbar.config(command=self.listbox.yview)
+        self.text = scrolledtext.ScrolledText(text_fr)
+        self.text.config(height=12, state='disabled')
+        self.text.pack(side='top', fill='both', expand=True, padx=(5,0))
 
         # Label
-        label = tk.Label(self, text=f'PotDict {self.VERSION}\nBy Demons1014')
-        label.pack(fill='both', expand=True, padx=5, pady=(0,5))
+        label = tk.Label(self, text=f'PotDict {self.VERSION}\nBy Demons1014', height=3)
+        label.pack(fill='both', padx=5, pady=(0,5))
 
     def main(self):
         
         self.display("Press q to exit")
         self.display("Press r to restart listener")
-        self.display("Press p to pause\n")
+        self.display("Press p to pause")
+        self.display("Press c to clear screen\n")
 
         self.start_listener()
 

@@ -1,4 +1,4 @@
-# PotDict V0.6.0		
+# PotDict V0.6.0
 
 PotDict is a addon dictionary application for PotPlayer.
 
@@ -23,9 +23,11 @@ Download the zip file and extract the content to whatever place you feel like. T
 
 <img src="./readme_files/img1.png"/>
 
-1. Exit PotDict
-2. Restart listener
-3. Start/Stop listener
+1. Search using PotDict
+2. Exit PotDict
+3. Restart listener
+4. Start/Stop listener
+5. Clear screen
 
 Copy `127.0.0.1:65432` or other url displayed and paste it into your browser.
 
@@ -64,24 +66,28 @@ This is an example of `settings.json`
 ```json
 {
     "window": {
-        "width": 300,
-        "height": 300,
+        "width": 290,
+        "height": 340,
         "start_pos_y": 100,
         "start_pos_x": 100,
-        "resize": true
+        "resize": true,
+        "font": "Consolas",
+        "font_size": 10
     },
     "network": {
         "host": "127.0.0.1",
         "port": 65432,
         "max_connect": 5,
-        "timeout" : 7,
-        "max_retries" : -1
+        "timeout": 7,
+        "max_retries": -1
     },
     "search": {
         "dict_paths": [
-            "./dicts/Oxford Dictionary of English 2nd.mdx"
+            "./dicts/Oxford Dictionary of English 2nd.mdx",
+            "./dicts/Webster's Advanced Learner's Dictionary.mdx"
         ],
-        "similar_words_shown" : 10
+        "history_path": "./history.txt",
+        "similar_words_shown": 10
     },
     "log": {
         "log_level": "DEBUG",
@@ -118,8 +124,8 @@ This is an example of `settings.json`
 | Options             | Type          | Description                                                        |
 | ------------------- | ------------- | ------------------------------------------------------------------ |
 | dict_paths          | array{string} | A list of dictionaries to be loaded.                               |
-| history_path        | string        | path to search history file                                        |
-| similar_words_shown | number        | number of similar words to be shown when definition was not found. |
+| history_path        | string        | Path to search history file                                        |
+| similar_words_shown | number        | Number of similar words to be shown when definition was not found. |
 
 #### log
 
