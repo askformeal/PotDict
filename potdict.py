@@ -12,6 +12,87 @@ import json
 import os
 import sys
 
+class Logger():
+    def __init__(self, path, display_cmd, level='DEBUG', print_log=False, max_bytes=0):
+        self.path = path
+        self.display_cmd = display_cmd
+        self.level = level
+        self.print_log = print_log
+        self.max_bytes = max_bytes
+
+    def log(self, msg, level, output=False, nl = False, max_log_bytes=None, log_level=None, print_log=None):
+        """ 
+        d -> DEBUG
+        i -> INFO
+        w -> WARNING
+        e -> ERROR
+        c -> CRITICAL
+        """
+        
+        try:
+            self.max_bytes
+        except AttributeError:
+            self.max_bytes = max_log_bytes
+        
+        try:
+            self.level
+        except AttributeError:
+            self.level = log_level
+
+        try:
+            self.print_log
+        except AttributeError:
+            self.print_log = print_log
+
+        if not os.path.exists(self.path):
+            with open(self.path, 'w', encoding='utf-8') as f:
+                self.log('Log file app.log not found, created', 'i')
+
+        size = os.stat(self.path).st_size
+
+        try:
+            if size > self.max_bytes and self.max_bytes != 0:
+                with open(self.path, 'w', encoding='utf-8') as f:
+                    pass
+                self.log('Reach max log size, log cleared', 'd')
+        except Exception:
+            pass
+
+        levels = {
+            'd' : 'DEBUG',
+            'i': 'INFO',
+            'w' : 'WARNING',
+            'e' : 'ERROR',
+            'c' : 'CRITICAL',
+        }
+
+        importance = {
+            'DEBUG' : 1,
+            'INFO' : 2,
+            'WARNING' : 3,
+            'ERROR' : 4,
+            'CRITICAL' : 5,
+        }
+        
+        level = levels[level]
+        if importance[level] >= importance[self.level]:
+            
+            if output:
+                self.display_cmd(f"{msg}")
+
+            if self.print_log:
+                print(msg)
+
+            msg = msg.replace('\n', '')
+
+            if nl:
+                msg += '\n'
+            
+            with open(self.path, 'a', encoding='utf-8') as f:
+                t = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                f.write(f'[{t}] [{level}] {msg}\n')
+
+    
 class Dict():
     def __init__(self, name, headwords, items):
         self.name = name
@@ -45,15 +126,17 @@ class PotDict(tk.Tk):
             '400_html' : './data/html/400.html',
             'default_settings' : './data/default_settings.json',
             'ico' : './data/ico.ico',
-            'font' : './data/ZQKfreefont-2.otf',
         }
 
         for k, v in self.file_paths.items():
             self.file_paths[k] = self.convert_path(v)
         
-        self.load_files()
         self.HISTORY_PATH = './history.txt'
         self.LOG_PATH = './app.log'
+        
+        self.logger = Logger(self.LOG_PATH, self.display)
+        
+        self.load_files()
 
         self.handling = False
         self.retries_left = self.MAX_RETRIES
@@ -101,9 +184,9 @@ class PotDict(tk.Tk):
         self.SIMILAR_WORD_SHOWN = search['similar_words_shown']
         
         log = settings['log']
-        self.LOG_LEVEL = log['log_level']
-        self.PRINT_LOG = log['print_log']
-        self.LOG_MAX_BYTES = log['log_max_bytes']
+        self.logger.level = log['log_level']
+        self.logger.print_log = log['print_log']
+        self.logger.max_bytes = log['log_max_bytes']
         
     def load_files(self):
         try:
@@ -112,12 +195,12 @@ class PotDict(tk.Tk):
 
         except FileNotFoundError:
             settings = self.restore_default_settings()
-            self.log("File not found: settings.json, create default setting file", 'i',
+            self.logger.log("File not found: settings.json, create default setting file", 'i',
                      max_log_bytes=settings['log']['log_max_bytes'],
                      log_level=settings['log']['log_level'],
                      print_log=settings['log']['print_log'],)
         except json.decoder.JSONDecodeError:
-            self.log("Invalid index in settings.json", 'c',
+            self.logger.log("Invalid index in settings.json", 'c',
                         log_level='DEBUG',
                         print_log=False)
             sys.exit(1)
@@ -128,7 +211,7 @@ class PotDict(tk.Tk):
         self.headwords = []
         for path in self.DICT_PATHS:
             if not os.path.exists(path):
-                self.log(f'Dictionary not found: {path}', 'c')
+                self.logger.logger(f'Dictionary not found: {path}', 'c')
                 self.exit_server(1)
             name = os.path.splitext(os.path.basename(path))[0]
 
@@ -143,28 +226,28 @@ class PotDict(tk.Tk):
             with open(self.file_paths['homepage_html'], 'r', encoding='utf-8') as f:
                 self.homepage_template = f.read()
         except FileNotFoundError:
-            self.log('File not found: homepage.html', 'c')
+            self.logger.log('File not found: homepage.html', 'c')
             self.exit_server(code=1)
 
         try:
             with open(self.file_paths['result_html'], 'r', encoding='utf-8') as f:
                 self.result_template = f.read()
         except FileNotFoundError:
-            self.log('File not found: result.html', 'c')
+            self.logger.log('File not found: result.html', 'c')
             self.exit_server(code=1)
 
         try:
             with open(self.file_paths['not_found_html'], 'r', encoding='utf-8') as f:
                 self.not_found_template = f.read()
         except FileNotFoundError:
-            self.log('File not found: not_found.html', 'c')
+            self.logger.log('File not found: not_found.html', 'c')
             self.exit_server(code=1)
 
         try:
             with open(self.file_paths['400_html'], 'r', encoding='utf-8') as f:
                 self.bad_request_template = f.read()
         except FileNotFoundError:
-            self.log('File not found: 400.html', 'c')
+            self.logger.log('File not found: 400.html', 'c')
             self.exit_server(code=1)
 
     def restore_default_settings(self):
@@ -175,7 +258,7 @@ class PotDict(tk.Tk):
                     json.dump(settings, f2, indent=4)
                 return settings
         except:
-            self.log("File not found: default_settings.json", 'c',
+            self.logger.log("File not found: default_settings.json", 'c',
                         log_level='DEBUG',
                         print_log=False)
             sys.exit(1)
@@ -192,82 +275,82 @@ class PotDict(tk.Tk):
         try:
             self.text.config(state='normal')
         except AttributeError:
-            self.log("ScrolledText not found, display canceled", 'w', output=False)
+            self.logger.log("ScrolledText not found, display canceled", 'w', output=False)
         self.text.insert('end', f'{text}\n')
         self.text.see('end')
         self.text.config(state='disabled')
 
-    def log(self, msg, level = 'd', output=False, nl = False, max_log_bytes=None, log_level=None, print_log=None):
-        """ 
-        d -> DEBUG
-        i -> INFO
-        w -> WARNING
-        e -> ERROR
-        c -> CRITICAL
-        """
+    # def log(self, msg, level = 'd', output=False, nl = False, max_log_bytes=None, log_level=None, print_log=None):
+    #     """ 
+    #     d -> DEBUG
+    #     i -> INFO
+    #     w -> WARNING
+    #     e -> ERROR
+    #     c -> CRITICAL
+    #     """
         
-        try:
-            self.LOG_MAX_BYTES
-        except AttributeError:
-            self.LOG_MAX_BYTES = max_log_bytes
+    #     try:
+    #         self.LOG_MAX_BYTES
+    #     except AttributeError:
+    #         self.LOG_MAX_BYTES = max_log_bytes
         
-        try:
-            self.LOG_LEVEL
-        except AttributeError:
-            self.LOG_LEVEL = log_level
+    #     try:
+    #         self.LOG_LEVEL
+    #     except AttributeError:
+    #         self.LOG_LEVEL = log_level
 
-        try:
-            self.PRINT_LOG
-        except AttributeError:
-            self.PRINT_LOG = print_log
+    #     try:
+    #         self.PRINT_LOG
+    #     except AttributeError:
+    #         self.PRINT_LOG = print_log
 
-        if not os.path.exists(self.LOG_PATH):
-            with open(self.LOG_PATH, 'w', encoding='utf-8') as f:
-                self.log('Log file app.log not found, created', 'i')
+    #     if not os.path.exists(self.LOG_PATH):
+    #         with open(self.LOG_PATH, 'w', encoding='utf-8') as f:
+    #             self.log('Log file app.log not found, created', 'i')
 
-        size = os.stat(self.LOG_PATH).st_size
+    #     size = os.stat(self.LOG_PATH).st_size
 
-        try:
-            if size > self.LOG_MAX_BYTES:
-                with open(self.LOG_PATH, 'w', encoding='utf-8') as f:
-                    pass
-                self.log('Reach max log size, log cleared', 'd')
-        except Exception:
-            pass
+    #     try:
+    #         if size > self.LOG_MAX_BYTES:
+    #             with open(self.LOG_PATH, 'w', encoding='utf-8') as f:
+    #                 pass
+    #             self.log('Reach max log size, log cleared', 'd')
+    #     except Exception:
+    #         pass
 
-        levels = {
-            'd' : 'DEBUG',
-            'i': 'INFO',
-            'w' : 'WARNING',
-            'e' : 'ERROR',
-            'c' : 'CRITICAL',
-        }
+    #     levels = {
+    #         'd' : 'DEBUG',
+    #         'i': 'INFO',
+    #         'w' : 'WARNING',
+    #         'e' : 'ERROR',
+    #         'c' : 'CRITICAL',
+    #     }
 
-        importance = {
-            'DEBUG' : 1,
-            'INFO' : 2,
-            'WARNING' : 3,
-            'ERROR' : 4,
-            'CRITICAL' : 5,
-        }
+    #     importance = {
+    #         'DEBUG' : 1,
+    #         'INFO' : 2,
+    #         'WARNING' : 3,
+    #         'ERROR' : 4,
+    #         'CRITICAL' : 5,
+    #     }
         
-        level = levels[level]
-        if importance[level] >= importance[self.LOG_LEVEL]:
+    #     level = levels[level]
+    #     if importance[level] >= importance[self.LOG_LEVEL]:
             
-            if output:
-                self.display(f"{msg}")
+    #         if output:
+    #             self.display(f"{msg}")
 
-            if self.PRINT_LOG:
-                print(msg)
+    #         if self.PRINT_LOG:
+    #             print(msg)
 
-            msg = msg.replace('\n', '')
+    #         msg = msg.replace('\n', '')
 
-            if nl:
-                msg += '\n'
+    #         if nl:
+    #             msg += '\n'
             
-            with open(self.LOG_PATH, 'a', encoding='utf-8') as f:
-                t = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                f.write(f'[{t}] [{level}] {msg}\n')
+    #         with open(self.LOG_PATH, 'a', encoding='utf-8') as f:
+    #             t = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    #             f.write(f'[{t}] [{level}] {msg}\n')
 
     
     def get_similar_words(self, word, headwords):
@@ -289,7 +372,7 @@ class PotDict(tk.Tk):
         blank_file = False
         if not os.path.exists(self.HISTORY_PATH):
             with open(self.HISTORY_PATH, 'w') as f:
-                self.log('History file not found, created', 'i')
+                self.logger.log('History file not found, created', 'i')
         with open(self.HISTORY_PATH, 'r', encoding='utf-8') as f:
             try:
                 last = f.readlines()[-1].split()[-1]
@@ -303,34 +386,34 @@ class PotDict(tk.Tk):
         
         for dict in self.dicts:
             name = dict.name
-            self.log(f'Searching {query_word} in {name}...', 'd')
+            self.logger.log(f'Searching {query_word} in {name}...', 'd')
             result = dict.search(query_word)
             if result:
-                self.log(f'Found', 'd')
+                self.logger.log(f'Found', 'd')
                 results += f'''
                             <h2 style="color: red;">{name}</h2>
                             <hr color="red" size="3"/>
                             {result}
                             '''
             else:
-                self.log(f'Not found', 'd')
+                self.logger.log(f'Not found', 'd')
         if len(results) == 0:
-            self.log(f'No definition for \"{query_word}\"', 'd')
+            self.logger.log(f'No definition for \"{query_word}\"', 'd')
             return self.get_similar_words(query_word, self.headwords)
         else:
             return results
 
     def super_listener(self, start_time):
         if self.retries_left == 0:
-            self.log(f'Reached maximum retries, shutdown listener.')
+            self.logger.log(f'Reached maximum retries, shutdown listener.')
             self.pause_listener()
         while self.handling:
             if (datetime.now().timestamp() - start_time) > self.TIMEOUT:
                 if self.MAX_RETRIES != -1:
                     self.retries_left -= 1
-                    self.log(f'Connection timeout, {self.retries_left} retries remained', 'w', output=True)
+                    self.logger.log(f'Connection timeout, {self.retries_left} retries remained', 'w', output=True)
                 else:
-                    self.log(f'Connection timeout, retry', 'w', output=True)
+                    self.logger.log(f'Connection timeout, retry', 'w', output=True)
                 self.restart_listener()
                 break
 
@@ -338,13 +421,13 @@ class PotDict(tk.Tk):
         self.server_socket.bind((self.HOST, self.PORT))
 
         self.server_socket.listen(self.MAX_CONNECT)
-        self.log(f'Listening at {self.HOST}:{self.PORT}...', 'i', output=True)
+        self.logger.log(f'Listening at {self.HOST}:{self.PORT}...', 'i', output=True)
 
         while True:
             try:
                 client_socket, client_address = self.server_socket.accept()
             except OSError:
-                self.log("Socket closed", 'd', output=True)
+                self.logger.log("Socket closed", 'd', output=True)
                 return
             
             self.handling = True
@@ -353,13 +436,13 @@ class PotDict(tk.Tk):
             super_thread.start()
             with client_socket:
                 result = None
-                self.log(f"Connect from: {client_address}", 'd')
+                self.logger.log(f"Connect from: {client_address}", 'd')
                 tmp = client_socket.recv(1024).decode('utf-8')
                 try:
                     data = urlparse(tmp.splitlines()[0].split()[1])
                     
                 except IndexError:
-                    self.log(f'Bad Request: {tmp}', 'e')
+                    self.logger.log(f'Bad Request: {tmp}', 'e')
                     continue
 
                 params = parse_qs(data.query)
@@ -367,12 +450,12 @@ class PotDict(tk.Tk):
                 while '' in path:
                     path.remove('')
                 
-                self.log(f'Received path: {path}', 'd')
-                self.log(f'Received params: {params}', 'd')
+                self.logger.log(f'Received path: {path}', 'd')
+                self.logger.log(f'Received params: {params}', 'd')
                 query_word = params.get('q', [None])[0]
                 
                 if len(path) == 0:
-                    self.log('Access homepage')
+                    self.logger.log('Access homepage')
                     response = self.homepage_template
                     header = self.HEADER_200
                 elif path[0] == 'search' and query_word:
@@ -393,7 +476,7 @@ class PotDict(tk.Tk):
                         response = response.replace('%S', similar_list)
                         header = self.HEADER_200
                 else:
-                    self.log('Bad Request', 'e', output=False)
+                    self.logger.log('Bad Request', 'e', output=False)
                     response = self.bad_request_template
                     header = self.HEADER_400
                 
@@ -407,7 +490,7 @@ class PotDict(tk.Tk):
                 response = f'{header}{response}'
                 
                 client_socket.sendall(response.encode('utf-8'))
-                self.log("Response sent\n", 'd')
+                self.logger.log("Response sent\n", 'd')
                 
                 self.handling = False
                 self.retries_left = self.MAX_RETRIES
@@ -415,7 +498,7 @@ class PotDict(tk.Tk):
 
     def start_listener(self):
         global thread
-        self.log('Starting Listener...', 'i', output=True)
+        self.logger.log('Starting Listener...', 'i', output=True)
         thread = threading.Thread(target=self.listen_network)
         thread.daemon = True
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -423,7 +506,7 @@ class PotDict(tk.Tk):
 
     def stop_listener(self):
         global thread
-        self.log('Stopping Listener...', 'i', output=True)
+        self.logger.log('Stopping Listener...', 'i', output=True)
         self.server_socket.close()
     
     def pause_listener(self, event=None):
@@ -436,16 +519,16 @@ class PotDict(tk.Tk):
     def exit_server(self, code = 0, event=None):
         try:
             self.stop_listener()
-            self.log('Exiting server...', 'i', output=True, nl=True)
+            self.logger.log('Exiting server...', 'i', output=True, nl=True)
         except Exception as e:
-            self.log(f'Exception when exiting: {e}', 'e', log_level='DEBUG', print_log=True)
+            self.logger.log(f'Exception when exiting: {e}', 'e', log_level='DEBUG', print_log=True)
             sys.exit(code)
         self.code = code
         self.quit()
         self.destroy()
 
     def restart_listener(self, event=None):
-        self.log('Restarting...\n', 'i', output=True)
+        self.logger.log('Restarting...\n', 'i', output=True)
         self.stop_listener()
         self.start_listener()
     
@@ -462,7 +545,7 @@ class PotDict(tk.Tk):
         try:
             os.startfile('./settings.json')
         except FileNotFoundError:
-            self.log("File not found: settings.json", 'c')
+            self.logger.log("File not found: settings.json", 'c')
             sys.exit(1)
 
     def open_repo(self):
@@ -588,5 +671,5 @@ if __name__ == '__main__':
         potdict.main()
         sys.exit(0)
     except Exception as e:
-        potdict.log(f'Almost uncaught Exception: \"{e}\"', 'c', True, True)
+        potdict.logger.log(f'Almost uncaught Exception: \"{e}\"', 'c', True, True)
         sys.exit(1)
