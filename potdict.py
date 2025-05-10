@@ -1,5 +1,3 @@
-import socket
-from urllib.parse import urlparse, parse_qs
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import scrolledtext
@@ -84,8 +82,6 @@ class PotDict(tk.Tk):
         self.retries_left = self.MAX_RETRIES
 
         self.code = 0
-
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         self.HEADER_200 = f'''HTTP/1.1 200 OK
         Content-Type: text/html; charset=UTF-8
