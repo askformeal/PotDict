@@ -6,92 +6,13 @@ from tkinter import scrolledtext
 from readmdict import MDX
 from Levenshtein import distance
 import webbrowser
-import threading
 from datetime import datetime
 import json
 import os
 import sys
 
-class Logger():
-    def __init__(self, path, display_cmd, level='DEBUG', print_log=False, max_bytes=0):
-        self.path = path
-        self.display_cmd = display_cmd
-        self.level = level
-        self.print_log = print_log
-        self.max_bytes = max_bytes
-
-    def log(self, msg, level, output=False, nl = False, max_log_bytes=None, log_level=None, print_log=None):
-        """ 
-        d -> DEBUG
-        i -> INFO
-        w -> WARNING
-        e -> ERROR
-        c -> CRITICAL
-        """
-        
-        try:
-            self.max_bytes
-        except AttributeError:
-            self.max_bytes = max_log_bytes
-        
-        try:
-            self.level
-        except AttributeError:
-            self.level = log_level
-
-        try:
-            self.print_log
-        except AttributeError:
-            self.print_log = print_log
-
-        if not os.path.exists(self.path):
-            with open(self.path, 'w', encoding='utf-8') as f:
-                self.log('Log file app.log not found, created', 'i')
-
-        size = os.stat(self.path).st_size
-
-        try:
-            if size > self.max_bytes and self.max_bytes != 0:
-                with open(self.path, 'w', encoding='utf-8') as f:
-                    pass
-                self.log('Reach max log size, log cleared', 'd')
-        except Exception:
-            pass
-
-        levels = {
-            'd' : 'DEBUG',
-            'i': 'INFO',
-            'w' : 'WARNING',
-            'e' : 'ERROR',
-            'c' : 'CRITICAL',
-        }
-
-        importance = {
-            'DEBUG' : 1,
-            'INFO' : 2,
-            'WARNING' : 3,
-            'ERROR' : 4,
-            'CRITICAL' : 5,
-        }
-        
-        level = levels[level]
-        if importance[level] >= importance[self.level]:
-            
-            if output:
-                self.display_cmd(f"{msg}")
-
-            if self.print_log:
-                print(msg)
-
-            msg = msg.replace('\n', '')
-
-            if nl:
-                msg += '\n'
-            
-            with open(self.path, 'a', encoding='utf-8') as f:
-                t = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                f.write(f'[{t}] [{level}] {msg}\n')
-
+from scr.logger import Logger
+from scr.listener import Listener
     
 class Dict():
     def __init__(self, name, headwords, items):
@@ -137,6 +58,11 @@ class PotDict(tk.Tk):
         self.logger = Logger(self.LOG_PATH, self.display)
         
         self.load_files()
+
+        self.listener = Listener(self, self.HOST, self.PORT, self.MAX_CONNECT,
+                                 self.TIMEOUT, self.MAX_RETRIES,
+                                 self.homepage_template, self.result_template,
+                                 self.not_found_template, self.bad_request_template)
 
         self.handling = False
         self.retries_left = self.MAX_RETRIES
@@ -184,9 +110,9 @@ class PotDict(tk.Tk):
         self.SIMILAR_WORD_SHOWN = search['similar_words_shown']
         
         log = settings['log']
-        self.logger.level = log['log_level']
-        self.logger.print_log = log['print_log']
-        self.logger.max_bytes = log['log_max_bytes']
+        self.LOG_LEVEL = log['log_level']
+        self.PRINT_LOG = log['print_log']
+        self.LOG_MAX_BYTES = log['log_max_bytes']
         
     def load_files(self):
         try:
@@ -206,12 +132,16 @@ class PotDict(tk.Tk):
             sys.exit(1)
 
         self.load_settings(settings)
+        
+        self.logger.level = self.LOG_LEVEL
+        self.logger.print_log = self.PRINT_LOG
+        self.logger.max_bytes = self.LOG_MAX_BYTES
 
         self.dicts = []
         self.headwords = []
         for path in self.DICT_PATHS:
             if not os.path.exists(path):
-                self.logger.logger(f'Dictionary not found: {path}', 'c')
+                self.logger.log(f'Dictionary not found: {path}', 'c')
                 self.exit_server(1)
             name = os.path.splitext(os.path.basename(path))[0]
 
@@ -249,7 +179,7 @@ class PotDict(tk.Tk):
         except FileNotFoundError:
             self.logger.log('File not found: 400.html', 'c')
             self.exit_server(code=1)
-
+        
     def restore_default_settings(self):
         try:
             with open(self.file_paths['default_settings'], 'r', encoding='utf-8') as f1:
@@ -279,79 +209,6 @@ class PotDict(tk.Tk):
         self.text.insert('end', f'{text}\n')
         self.text.see('end')
         self.text.config(state='disabled')
-
-    # def log(self, msg, level = 'd', output=False, nl = False, max_log_bytes=None, log_level=None, print_log=None):
-    #     """ 
-    #     d -> DEBUG
-    #     i -> INFO
-    #     w -> WARNING
-    #     e -> ERROR
-    #     c -> CRITICAL
-    #     """
-        
-    #     try:
-    #         self.LOG_MAX_BYTES
-    #     except AttributeError:
-    #         self.LOG_MAX_BYTES = max_log_bytes
-        
-    #     try:
-    #         self.LOG_LEVEL
-    #     except AttributeError:
-    #         self.LOG_LEVEL = log_level
-
-    #     try:
-    #         self.PRINT_LOG
-    #     except AttributeError:
-    #         self.PRINT_LOG = print_log
-
-    #     if not os.path.exists(self.LOG_PATH):
-    #         with open(self.LOG_PATH, 'w', encoding='utf-8') as f:
-    #             self.log('Log file app.log not found, created', 'i')
-
-    #     size = os.stat(self.LOG_PATH).st_size
-
-    #     try:
-    #         if size > self.LOG_MAX_BYTES:
-    #             with open(self.LOG_PATH, 'w', encoding='utf-8') as f:
-    #                 pass
-    #             self.log('Reach max log size, log cleared', 'd')
-    #     except Exception:
-    #         pass
-
-    #     levels = {
-    #         'd' : 'DEBUG',
-    #         'i': 'INFO',
-    #         'w' : 'WARNING',
-    #         'e' : 'ERROR',
-    #         'c' : 'CRITICAL',
-    #     }
-
-    #     importance = {
-    #         'DEBUG' : 1,
-    #         'INFO' : 2,
-    #         'WARNING' : 3,
-    #         'ERROR' : 4,
-    #         'CRITICAL' : 5,
-    #     }
-        
-    #     level = levels[level]
-    #     if importance[level] >= importance[self.LOG_LEVEL]:
-            
-    #         if output:
-    #             self.display(f"{msg}")
-
-    #         if self.PRINT_LOG:
-    #             print(msg)
-
-    #         msg = msg.replace('\n', '')
-
-    #         if nl:
-    #             msg += '\n'
-            
-    #         with open(self.LOG_PATH, 'a', encoding='utf-8') as f:
-    #             t = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    #             f.write(f'[{t}] [{level}] {msg}\n')
-
     
     def get_similar_words(self, word, headwords):
         similar_words = {}
@@ -403,122 +260,9 @@ class PotDict(tk.Tk):
         else:
             return results
 
-    def super_listener(self, start_time):
-        if self.retries_left == 0:
-            self.logger.log(f'Reached maximum retries, shutdown listener.')
-            self.pause_listener()
-        while self.handling:
-            if (datetime.now().timestamp() - start_time) > self.TIMEOUT:
-                if self.MAX_RETRIES != -1:
-                    self.retries_left -= 1
-                    self.logger.log(f'Connection timeout, {self.retries_left} retries remained', 'w', output=True)
-                else:
-                    self.logger.log(f'Connection timeout, retry', 'w', output=True)
-                self.restart_listener()
-                break
-
-    def listen_network(self):
-        self.server_socket.bind((self.HOST, self.PORT))
-
-        self.server_socket.listen(self.MAX_CONNECT)
-        self.logger.log(f'Listening at {self.HOST}:{self.PORT}...', 'i', output=True)
-
-        while True:
-            try:
-                client_socket, client_address = self.server_socket.accept()
-            except OSError:
-                self.logger.log("Socket closed", 'd', output=True)
-                return
-            
-            self.handling = True
-            super_thread = threading.Thread(target=self.super_listener, args=(datetime.now().timestamp(),))
-            super_thread.daemon = True
-            super_thread.start()
-            with client_socket:
-                result = None
-                self.logger.log(f"Connect from: {client_address}", 'd')
-                tmp = client_socket.recv(1024).decode('utf-8')
-                try:
-                    data = urlparse(tmp.splitlines()[0].split()[1])
-                    
-                except IndexError:
-                    self.logger.log(f'Bad Request: {tmp}', 'e')
-                    continue
-
-                params = parse_qs(data.query)
-                path = data.path.split('/')
-                while '' in path:
-                    path.remove('')
-                
-                self.logger.log(f'Received path: {path}', 'd')
-                self.logger.log(f'Received params: {params}', 'd')
-                query_word = params.get('q', [None])[0]
-                
-                if len(path) == 0:
-                    self.logger.log('Access homepage')
-                    response = self.homepage_template
-                    header = self.HEADER_200
-                elif path[0] == 'search' and query_word:
-                    result = self.search(query_word)
-                    if str(type(result)) == '<class \'str\'>':
-                        response = self.result_template
-                        header = self.HEADER_200
-                    else:
-                        response = self.not_found_template
-                        similar_list = ''
-                        for word in result:
-                            similar_list += f'''
-                                            <font size=\"4\">
-                                                    <a href=\"http://{self.HOST}:{self.PORT}/search/?q={word}\">    {word}</a>
-                                            </font>
-                                            <br>
-                                            '''
-                        response = response.replace('%S', similar_list)
-                        header = self.HEADER_200
-                else:
-                    self.logger.log('Bad Request', 'e', output=False)
-                    response = self.bad_request_template
-                    header = self.HEADER_400
-                
-                if query_word:
-                    response = response.replace('%Q', query_word)
-                if result:
-                    response = response.replace('%R', str(result))
-                response = response.replace('%H', self.HOST)
-                response = response.replace('%P', str(self.PORT))
-                response = response.replace('entry://', f'http://{self.HOST}:{self.PORT}/search/?q=')
-                response = f'{header}{response}'
-                
-                client_socket.sendall(response.encode('utf-8'))
-                self.logger.log("Response sent\n", 'd')
-                
-                self.handling = False
-                self.retries_left = self.MAX_RETRIES
-
-
-    def start_listener(self):
-        global thread
-        self.logger.log('Starting Listener...', 'i', output=True)
-        thread = threading.Thread(target=self.listen_network)
-        thread.daemon = True
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        thread.start()
-
-    def stop_listener(self):
-        global thread
-        self.logger.log('Stopping Listener...', 'i', output=True)
-        self.server_socket.close()
-    
-    def pause_listener(self, event=None):
-        self.running = not self.running
-        if self.running:
-            self.start_listener()
-        else:
-            self.stop_listener()                  
-
     def exit_server(self, code = 0, event=None):
         try:
-            self.stop_listener()
+            self.listener.stop_listener()
             self.logger.log('Exiting server...', 'i', output=True, nl=True)
         except Exception as e:
             self.logger.log(f'Exception when exiting: {e}', 'e', log_level='DEBUG', print_log=True)
@@ -527,10 +271,6 @@ class PotDict(tk.Tk):
         self.quit()
         self.destroy()
 
-    def restart_listener(self, event=None):
-        self.logger.log('Restarting...\n', 'i', output=True)
-        self.stop_listener()
-        self.start_listener()
     
     def search_in_browser(self, event=None):
         query_word = self.search_entry.get()
@@ -575,8 +315,8 @@ By Demons1014'''
         self.protocol('WM_DELETE_WINDOW', self.exit_server)
 
         self.bind('<Key-q>', self.exit_server)
-        self.bind('<Key-r>', self.restart_listener)
-        self.bind('<Key-p>', self.pause_listener)
+        self.bind('<Key-r>', self.listener.restart_listener)
+        self.bind('<Key-p>', self.listener.pause_listener)
         
         # Menus
         menu_frame = tk.Frame(self)
@@ -590,8 +330,8 @@ By Demons1014'''
 
         file_menu.add_command(label="Open Homepage", command=self.open_homepage)
         file_menu.add_command(label='Open settings.json', command=self.open_settings)
-        file_menu.add_command(label='Restart listener', accelerator='r', command=self.restart_listener)
-        file_menu.add_command(label='Start/Stop Listener', accelerator='p', command=self.pause_listener)
+        file_menu.add_command(label='Restart listener', accelerator='r', command=self.listener.restart_listener)
+        file_menu.add_command(label='Start/Stop Listener', accelerator='p', command=self.listener.pause_listener)
         file_menu.add_separator()
         file_menu.add_command(label='Exit', accelerator='q', command=self.exit_server)
 
@@ -628,10 +368,10 @@ By Demons1014'''
         exit_button = tk.Button(buttons_fr, text='Exit', relief='raised', command=self.exit_server)
         exit_button.pack(side='left', expand=True, fill='x', padx=(0,5))
 
-        restart_button = tk.Button(buttons_fr, text='Restart', relief='raised', command=self.restart_listener)
+        restart_button = tk.Button(buttons_fr, text='Restart', relief='raised', command=self.listener.restart_listener)
         restart_button.pack(side='left', expand=True, fill='x', padx=(0,5))
         
-        pause_button = tk.Button(buttons_fr, text='Pause', relief='raised', command=self.pause_listener)
+        pause_button = tk.Button(buttons_fr, text='Pause', relief='raised', command=self.listener.pause_listener)
         pause_button.pack(side='left', expand=True, fill='x', padx=(0, 5))
 
         clear_button = tk.Button(buttons_fr, text='Clear', relief='raised', command=self.clear_screen)
@@ -660,7 +400,7 @@ By Demons1014'''
         self.display("Press p to pause")
         self.display("Press c to clear screen\n")
 
-        self.start_listener()
+        self.listener.start_listener()
 
         self.mainloop()
            
