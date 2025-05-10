@@ -15,6 +15,39 @@ from scr.logger import Logger
 from scr.listener import Listener
 from scr.dict import Dict    
 
+class Misc:
+    def __init__(self, master):
+        self.master = master
+
+    def search_in_browser(self, event=None):
+        query_word = self.master.search_entry.get()
+        if len(query_word) > 0:
+            webbrowser.open(f'http://{self.master.HOST}:{self.master.PORT}/search/?q={query_word}')
+        self.master.search_entry.delete(0, 'end')
+
+    def open_homepage(self):
+        webbrowser.open(f'http://{self.master.HOST}:{self.master.PORT}')
+
+    def open_settings(self):
+        try:
+            os.startfile('./settings.json')
+        except FileNotFoundError:
+            self.master.logger.log("File not found: settings.json", 'c')
+            self.master.exit_server(1)
+
+    def open_repo(self):
+        webbrowser.open('https://github.com/askformeal/PotDict')
+
+    def show_about(self):
+        about = f'''PotDict {self.master.VERSION}
+By Demons1014'''
+        messagebox.showinfo(title='About', message = about)
+
+    def clear_screen(self):
+        self.master.text.config(state='normal')
+        self.master.text.delete("1.0", 'end')
+        self.master.text.config(state='disabled')
+
 class PotDict(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -36,6 +69,8 @@ class PotDict(tk.Tk):
         self.HISTORY_PATH = './history.txt'
         self.LOG_PATH = './app.log'
         
+        self.misc = Misc(self)
+
         self.logger = Logger(self, self.LOG_PATH)
         
         self.load_files()
@@ -252,36 +287,6 @@ class PotDict(tk.Tk):
         self.quit()
         self.destroy()
 
-    
-    def search_in_browser(self, event=None):
-        query_word = self.search_entry.get()
-        if len(query_word) > 0:
-            webbrowser.open(f'http://{self.HOST}:{self.PORT}/search/?q={query_word}')
-        self.search_entry.delete(0, 'end')
-
-    def open_homepage(self):
-        webbrowser.open(f'http://{self.HOST}:{self.PORT}')
-
-    def open_settings(self):
-        try:
-            os.startfile('./settings.json')
-        except FileNotFoundError:
-            self.logger.log("File not found: settings.json", 'c')
-            sys.exit(1)
-
-    def open_repo(self):
-        webbrowser.open('https://github.com/askformeal/PotDict')
-
-    def show_about(self):
-        about = f'''PotDict {self.VERSION}
-By Demons1014'''
-        messagebox.showinfo(title='About', message = about)
-
-    def clear_screen(self):
-        self.text.config(state='normal')
-        self.text.delete("1.0", 'end')
-        self.text.config(state='disabled')
-
     def setup_tk(self):
 
         # Window
@@ -309,8 +314,8 @@ By Demons1014'''
         file_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label='File', menu=file_menu)
         
-        file_menu.add_command(label="Open Homepage", command=self.open_homepage)
-        file_menu.add_command(label='Open settings.json', command=self.open_settings)
+        file_menu.add_command(label="Open Homepage", command=self.misc.open_homepage)
+        file_menu.add_command(label='Open settings.json', command=self.misc.open_settings)
         file_menu.add_command(label='Restart listener', accelerator='r', command=self.listener.restart_listener)
         file_menu.add_command(label='Start/Stop Listener', accelerator='p', command=self.listener.pause_listener)
         file_menu.add_separator()
@@ -320,27 +325,27 @@ By Demons1014'''
         edit_menu=tk.Menu(menu_frame, tearoff=False)
         menu.add_cascade(label='Edit', menu=edit_menu)
 
-        edit_menu.add_command(label='Clear screen', accelerator='c', command=self.clear_screen)
+        edit_menu.add_command(label='Clear screen', accelerator='c', command=self.misc.clear_screen)
         edit_menu.add_command(label='Clear log', command=self.logger.clear)
 
 
         help_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label='Help', menu=help_menu)
 
-        help_menu.add_command(label='Open GitHub Repository', command=self.open_repo)
+        help_menu.add_command(label='Open GitHub Repository', command=self.misc.open_repo)
         help_menu.add_separator()
-        help_menu.add_command(label='About', command=self.show_about)
+        help_menu.add_command(label='About', command=self.misc.show_about)
 
         # Search entry
         search_fr = tk.Frame(self, bg='LightGrey')
         search_fr.pack(fill='x', padx=5, pady=5)
 
         self.search_entry = tk.Entry(search_fr)
-        self.search_entry.bind('<Return>', self.search_in_browser)
+        self.search_entry.bind('<Return>', self.misc.search_in_browser)
         self.search_entry.pack(side='left', expand=True, fill='both', padx=(0,5))
         self.search_entry.focus_set()
 
-        search_button = tk.Button(search_fr, text="Search", command=self.search_in_browser)
+        search_button = tk.Button(search_fr, text="Search", command=self.misc.search_in_browser)
         search_button.pack(side='left')
 
         # Buttons
@@ -356,7 +361,7 @@ By Demons1014'''
         pause_button = tk.Button(buttons_fr, text='Pause', relief='raised', command=self.listener.pause_listener)
         pause_button.pack(side='left', expand=True, fill='x', padx=(0, 5))
 
-        clear_button = tk.Button(buttons_fr, text='Clear', relief='raised', command=self.clear_screen)
+        clear_button = tk.Button(buttons_fr, text='Clear', relief='raised', command=self.misc.clear_screen)
         clear_button.pack(side='left', expand=True, fill='x')
 
         # text

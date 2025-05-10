@@ -126,6 +126,7 @@ class Listener():
                 
                 client_socket.sendall(response.encode('utf-8'))
                 self.master.logger.log("Response sent\n", 'd')
+                client_socket.close()
                 
                 self.handling = False
                 self.retries_left = self.max_retries
