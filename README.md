@@ -124,7 +124,7 @@ This is an example of `settings.json`
 | Options             | Type          | Description                                                        |
 | ------------------- | ------------- | ------------------------------------------------------------------ |
 | dict_paths          | array{string} | A list of dictionaries to be loaded.                               |
-| history_path        | string        | Path to search history file                                        |
+| history_path        | string        | Path to search history file.(blank for no history)                |
 | similar_words_shown | number        | Number of similar words to be shown when definition was not found. |
 
 #### log

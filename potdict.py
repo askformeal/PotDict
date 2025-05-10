@@ -239,19 +239,20 @@ class PotDict(tk.Tk):
         results = ''
         last = ''
         blank_file = False
-        if not os.path.exists(self.HISTORY_PATH):
-            with open(self.HISTORY_PATH, 'w') as f:
-                self.logger.log('History file not found, created', 'i')
-        with open(self.HISTORY_PATH, 'r', encoding='utf-8') as f:
-            try:
-                last = f.readlines()[-1].split()[-1]
-            except IndexError:
-                blank_file = True
-        
-        with open(self.HISTORY_PATH, 'a', encoding='utf-8') as f:
-            if last != query_word or blank_file:
-                t = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                f.write(f'{t} | {query_word}\n')
+        if self.HISTORY_PATH != '':
+            if not os.path.exists(self.HISTORY_PATH):
+                with open(self.HISTORY_PATH, 'w') as f:
+                    self.logger.log('History file not found, created', 'i')
+            with open(self.HISTORY_PATH, 'r', encoding='utf-8') as f:
+                try:
+                    last = f.readlines()[-1].split()[-1]
+                except IndexError:
+                    blank_file = True
+            
+            with open(self.HISTORY_PATH, 'a', encoding='utf-8') as f:
+                if last != query_word or blank_file:
+                    t = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    f.write(f'{t} | {query_word}\n')
         
         for dict in self.dicts:
             name = dict.name
