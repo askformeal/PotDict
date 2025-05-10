@@ -5,7 +5,12 @@ a = Analysis(
     ['potdict.py'],
     pathex=[],
     binaries=[],
-    datas=[('./data/html/400.html', './data/html/'), ('./data/html/homepage.html', './data/html/'), ('./data/html/not_found.html', './data/html/'), ('./data/html/result.html', './data/html/'), ('./data/default_settings.json', './data'), ('./data/ico.ico', './data')],
+    
+    datas=[('./data/html/400.html', './data/html/'), ('./data/html/homepage.html', './data/html/'), 
+    ('./data/html/not_found.html', './data/html/'), ('./data/html/result.html', './data/html/'), 
+    ('./data/default_settings.json', './data'), ('./data/ico.ico', './data'), ('./scr/__init__.py', './scr'), 
+    ('./scr/listener.py', './scr'), ('./scr/logger.py', './scr'), ('./scr/dict.py', './scr')],
+    
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -15,8 +20,6 @@ a = Analysis(
     optimize=0,
 )
 pyz = PYZ(a.pure)
-distpath = "./bin",
-
 
 exe = EXE(
     pyz,
@@ -37,5 +40,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['ico.png'],
+    icon=['./data/ico.ico'],
 )

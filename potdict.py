@@ -13,32 +13,13 @@ import sys
 
 from scr.logger import Logger
 from scr.listener import Listener
-    
-class Dict():
-    def __init__(self, name, headwords, items):
-        self.name = name
-        self.headwords = headwords
-        self.items = items
-
-    def search(self, query_word):
-        query_word = query_word.strip()
-        try:
-            index = self.headwords.index(query_word.encode('utf-8'))
-        except ValueError:
-            try:
-                index = self.headwords.index(query_word.lower().encode('utf-8'))
-            except ValueError:
-                return None
-        
-        word, html = self.items[index]
-        html = html.decode('utf-8')
-        return html
+from scr.dict import Dict    
 
 class PotDict(tk.Tk):
     def __init__(self):
         super().__init__()
         
-        self.VERSION = 'v0.8.0'
+        self.VERSION = 'v0.8.1'
     
         self.file_paths = {
             'homepage_html' : './data/html/homepage.html',
@@ -148,7 +129,7 @@ class PotDict(tk.Tk):
             headwords = [*MDX(path, encoding='utf-8')]
             items = [*MDX(path, encoding='utf-8').items()]
             
-            self.dicts.append(Dict(name, headwords, items))
+            self.dicts.append(Dict(self, name, headwords, items))
             self.headwords += headwords
         self.headwords = set(self.headwords)
 
@@ -327,7 +308,7 @@ By Demons1014'''
         
         file_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label='File', menu=file_menu)
-
+        
         file_menu.add_command(label="Open Homepage", command=self.open_homepage)
         file_menu.add_command(label='Open settings.json', command=self.open_settings)
         file_menu.add_command(label='Restart listener', accelerator='r', command=self.listener.restart_listener)

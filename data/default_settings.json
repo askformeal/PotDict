@@ -16,10 +16,7 @@
         "max_retries": -1
     },
     "search": {
-        "dict_paths": [
-            "./dicts/Oxford Dictionary of English 2nd.mdx",
-            "./dicts/Webster's Advanced Learner's Dictionary.mdx"
-        ],
+        "dict_paths": [],
         "history_path": "./history.txt",
         "similar_words_shown": 10
     },
