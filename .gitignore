@@ -1,4 +1,4 @@
-.vscode
+/.vscode/
 dist
 build
 ico.png
@@ -6,3 +6,4 @@ ico.png
 *.log
 history.txt
 install.ps1
+/scr/__pycache__/

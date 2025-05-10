@@ -2,9 +2,9 @@ import os
 from datetime import datetime
 
 class Logger():
-    def __init__(self, path, display_cmd, level='DEBUG', print_log=False, max_bytes=0):
+    def __init__(self, master, path, level='DEBUG', print_log=False, max_bytes=0):
+        self.master = master
         self.path = path
-        self.display_cmd = display_cmd
         self.level = level
         self.print_log = print_log
         self.max_bytes = max_bytes
@@ -67,7 +67,7 @@ class Logger():
         if importance[level] >= importance[self.level]:
             
             if output:
-                self.display_cmd(f"{msg}")
+                self.master.display(f"{msg}")
 
             if self.print_log:
                 print(msg)
@@ -81,3 +81,6 @@ class Logger():
                 t = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 f.write(f'[{t}] [{level}] {msg}\n')
 
+    def clear(self):
+        with open(self.path, 'w') as f:
+            self.master.display('Log cleared')

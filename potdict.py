@@ -38,7 +38,7 @@ class PotDict(tk.Tk):
     def __init__(self):
         super().__init__()
         
-        self.VERSION = 'v0.7.1'
+        self.VERSION = 'v0.8.0'
     
         self.file_paths = {
             'homepage_html' : './data/html/homepage.html',
@@ -55,7 +55,7 @@ class PotDict(tk.Tk):
         self.HISTORY_PATH = './history.txt'
         self.LOG_PATH = './app.log'
         
-        self.logger = Logger(self.LOG_PATH, self.display)
+        self.logger = Logger(self, self.LOG_PATH)
         
         self.load_files()
 
@@ -340,6 +340,7 @@ By Demons1014'''
         menu.add_cascade(label='Edit', menu=edit_menu)
 
         edit_menu.add_command(label='Clear screen', accelerator='c', command=self.clear_screen)
+        edit_menu.add_command(label='Clear log', command=self.logger.clear)
 
 
         help_menu = tk.Menu(menu, tearoff=False)
