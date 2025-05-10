@@ -104,7 +104,7 @@ class Listener():
                         for word in result:
                             similar_list += f'''
                                             <font size=\"4\">
-                                                    <a href=\"http://{self.HOST}:{self.PORT}/search/?q={word}\">    {word}</a>
+                                                    <a href=\"http://{self.host}:{self.port}/search/?q={word}\">    {word}</a>
                                             </font>
                                             <br>
                                             '''

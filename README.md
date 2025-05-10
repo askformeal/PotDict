@@ -1,4 +1,4 @@
-# PotDict V0.8.1
+# PotDict V0.8.2
 
 PotDict is a addon dictionary application for PotPlayer.
 
