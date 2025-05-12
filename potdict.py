@@ -290,8 +290,6 @@ class PotDict(tk.Tk):
         self.browser = tk.Toplevel(self)
         self.browser.title('PotDict Browser')
         # self.browser.iconbitmap(self.file_paths['ico'])
-        l = tk.Label(self.browser, text='PotDict')
-        l.pack(fill='both')
         page = HtmlFrame(self.browser, messages_enabled = False)
         page.load_website(f"{self.HOST}:{self.PORT}")
         page.pack(fill="both", expand=True)
