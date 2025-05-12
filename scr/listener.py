@@ -90,7 +90,7 @@ class Listener():
                 query_word = params.get('q', [None])[0]
                 
                 if len(path) == 0:
-                    self.master.logger.log('Access homepage')
+                    self.master.logger.log('Access homepage', 'd')
                     response = self.homepage_template
                     header = self.HEADER_200
                 elif path[0] == 'search' and query_word:
