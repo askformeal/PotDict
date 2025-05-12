@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import scrolledtext
+from tkinterweb import HtmlFrame
 from readmdict import MDX
 from Levenshtein import distance
 import webbrowser
@@ -50,7 +51,7 @@ class PotDict(tk.Tk):
     def __init__(self):
         super().__init__()
         
-        self.VERSION = 'v0.8.3'
+        self.VERSION = 'v0.9.0'
     
         self.file_paths = {
             'homepage_html' : './data/html/homepage.html',
@@ -284,6 +285,16 @@ class PotDict(tk.Tk):
         self.quit()
         self.destroy()
 
+    def open_browser(self):
+        self.logger.log('Open built-in browser', 'd')
+        self.browser = tk.Toplevel(self)
+        self.browser.title('PotDict Browser')
+        self.browser.iconbitmap(self.file_paths['ico'])
+        page = HtmlFrame(self.browser, messages_enabled = False)
+        page.load_website(f"{self.HOST}:{self.PORT}")
+        page.pack(fill="both", expand=True)
+        self.browser.mainloop()
+
     def setup_tk(self):
 
         # Window
@@ -325,6 +336,10 @@ class PotDict(tk.Tk):
         edit_menu.add_command(label='Clear screen', accelerator='c', command=self.misc.clear_screen)
         edit_menu.add_command(label='Clear log', command=self.logger.clear)
 
+        view_menu = tk.Menu(menu, tearoff=False)
+        menu.add_cascade(label='View', menu=view_menu)
+
+        view_menu.add_command(label='Open built-in browser', command=self.open_browser)
 
         help_menu = tk.Menu(menu, tearoff=False)
         menu.add_cascade(label='Help', menu=help_menu)
