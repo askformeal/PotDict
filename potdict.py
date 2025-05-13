@@ -28,8 +28,10 @@ class Misc:
         webbrowser.open(f'http://{self.master.HOST}:{self.master.PORT}')
 
     def open_settings(self):
+        self.master.logger.log("Open settings.json", 'd')
         try:
-            os.startfile('./settings.json')
+            settings_path = os.path.join(os.path.abspath('.'), 'settings.json')
+            os.startfile(settings_path)
         except FileNotFoundError:
             self.master.logger.log("File not found: settings.json", 'c')
             self.master.exit_server(1)
@@ -51,7 +53,7 @@ class PotDict(tk.Tk):
     def __init__(self):
         super().__init__()
         
-        self.VERSION = 'v0.10.0'
+        self.VERSION = 'v0.10.1'
     
         self.file_paths = {
             'homepage_html' : './data/html/homepage.html',
@@ -84,7 +86,7 @@ class PotDict(tk.Tk):
 
         self.code = 0
 
-        self.DEFAULT_FONT_AWESOME_API = 'https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css'
+        self.DEFAULT_FONT_AWESOME_URL = 'https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css'
         self.HEADER_200 = f'''HTTP/1.1 200 OK
         Content-Type: text/html; charset=UTF-8
         '''

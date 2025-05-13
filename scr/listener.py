@@ -122,8 +122,8 @@ class Listener():
                     response = self.bad_request_template
                     header = self.HEADER_400
                 
-                if self.master.FONT_AWESOME_API != '':
-                    response = response.replace('%FA', self.master.FONT_AWESOME_API)
+                if self.master.FONT_AWESOME_URL != '':
+                    response = response.replace('%FA', self.master.FONT_AWESOME_URL)
                 else:
                     response = response.replace('%FA', self.master.DEFAULT_FONT_AWESOME_URL)
                 response = response.replace('%H', self.host)
