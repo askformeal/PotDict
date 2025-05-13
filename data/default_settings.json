@@ -20,6 +20,9 @@
         "history_path": "./history.txt",
         "similar_words_shown": 10
     },
+    "translation": {
+        "target_lang": ""
+    },
     "log": {
         "log_level": "DEBUG",
         "print_log": false,

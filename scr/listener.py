@@ -2,6 +2,7 @@ import socket
 from urllib.parse import urlparse, parse_qs
 import threading
 from datetime import datetime
+from scr.translator import translate
 
 class Listener():
     def __init__(self, master, host, port, max_connect, 
@@ -94,7 +95,10 @@ class Listener():
                     response = self.homepage_template
                     header = self.HEADER_200
                 elif path[0] == 'search' and query_word:
+                    
                     result = self.master.search(query_word)
+                    translation_result = translate(query_word, self.master.TARGET_LANG)
+                    
                     if str(type(result)) == '<class \'str\'>':
                         response = self.result_template
                         header = self.HEADER_200
@@ -110,15 +114,14 @@ class Listener():
                                             '''
                         response = response.replace('%S', similar_list)
                         header = self.HEADER_200
+                    response = response.replace('%Q', query_word)
+                    response = response.replace('%R', str(result))
+                    response = response.replace('%T', translation_result)
                 else:
                     self.master.logger.log('Bad Request', 'e')
                     response = self.bad_request_template
                     header = self.HEADER_400
                 
-                if query_word:
-                    response = response.replace('%Q', query_word)
-                if result:
-                    response = response.replace('%R', str(result))
                 response = response.replace('%H', self.host)
                 response = response.replace('%P', str(self.port))
                 response = response.replace('entry://', f'http://{self.host}:{self.port}/search/?q=')

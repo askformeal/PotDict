@@ -12,7 +12,7 @@ import sys
 
 from scr.logger import Logger
 from scr.listener import Listener
-from scr.dict import Dict    
+from scr.dict import Dict
 
 class Misc:
     def __init__(self, master):
@@ -51,7 +51,7 @@ class PotDict(tk.Tk):
     def __init__(self):
         super().__init__()
         
-        self.VERSION = 'v0.9.0'
+        self.VERSION = 'v0.10.0'
     
         self.file_paths = {
             'homepage_html' : './data/html/homepage.html',
@@ -121,6 +121,9 @@ class PotDict(tk.Tk):
         search = settings['search']
         self.DICT_PATHS = search['dict_paths']
         self.SIMILAR_WORD_SHOWN = search['similar_words_shown']
+
+        translation = settings['translation']
+        self.TARGET_LANG = translation['target_lang']
         
         log = settings['log']
         self.LOG_LEVEL = log['log_level']
@@ -262,7 +265,7 @@ class PotDict(tk.Tk):
             if result:
                 self.logger.log(f'Found', 'd')
                 results += f'''
-                            <h2 style="color: red;">{name}</h2>
+                            <h3 style="color: red;">{name}</h3>
                             <hr color="red" size="3"/>
                             {result}
                             '''
