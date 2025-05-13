@@ -10,7 +10,7 @@ a = Analysis(
     ('./data/html/not_found.html', './data/html/'), ('./data/html/result.html', './data/html/'), 
     ('./data/default_settings.json', './data'), ('./data/ico.ico', './data'), ('./scr/__init__.py', './scr'), 
     ('./scr/listener.py', './scr'), ('./scr/logger.py', './scr'), ('./scr/dict.py', './scr')],
-    ('./scr/translator.py', './scr),
+    ('./scr/translator.py', './scr'),
     
     hiddenimports=[],
     hookspath=[],
