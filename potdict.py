@@ -84,6 +84,7 @@ class PotDict(tk.Tk):
 
         self.code = 0
 
+        self.DEFAULT_FONT_AWESOME_API = 'https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css'
         self.HEADER_200 = f'''HTTP/1.1 200 OK
         Content-Type: text/html; charset=UTF-8
         '''
@@ -118,6 +119,8 @@ class PotDict(tk.Tk):
         self.TIMEOUT = network['timeout']
         self.MAX_RETRIES = network['max_retries']
         
+        self.FONT_AWESOME_URL = settings['font_awesome']
+
         search = settings['search']
         self.DICT_PATHS = search['dict_paths']
         self.SIMILAR_WORD_SHOWN = search['similar_words_shown']

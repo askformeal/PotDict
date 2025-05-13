@@ -122,6 +122,10 @@ class Listener():
                     response = self.bad_request_template
                     header = self.HEADER_400
                 
+                if self.master.FONT_AWESOME_API != '':
+                    response = response.replace('%FA', self.master.FONT_AWESOME_API)
+                else:
+                    response = response.replace('%FA', self.master.DEFAULT_FONT_AWESOME_URL)
                 response = response.replace('%H', self.host)
                 response = response.replace('%P', str(self.port))
                 response = response.replace('entry://', f'http://{self.host}:{self.port}/search/?q=')

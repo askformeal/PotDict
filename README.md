@@ -8,7 +8,9 @@ PotDict works pretty well on Windows64, but I haven't tested it on any other pla
 
 If you want to run the source code, the following libraries will be required:
 
+- `tkinterweb`
 - `readmdict`
+- `levenshtein`
 - `pyinstaller`
 
 ## Installation:
@@ -119,6 +121,12 @@ This is an example of `settings.json`
 | timeout     | number | Connection timeout.                                                                             |
 | max_retries | number | Maximum retries, set to -1 for infinite retries.                                                |
 
+#### font_awesome
+
+| Options      | Type   | Description                   |
+| ------------ | ------ | ----------------------------- |
+| font_awesome | string | url for Font Awesome css file |
+
 #### search
 
 | Options             | Type          | Description                                                        |
@@ -126,6 +134,12 @@ This is an example of `settings.json`
 | dict_paths          | array{string} | A list of dictionaries to be loaded.                               |
 | history_path        | string        | Path to search history file.(blank for no history)                |
 | similar_words_shown | number        | Number of similar words to be shown when definition was not found. |
+
+#### translation
+
+| Options     | Type   | Description                                                                                                   |
+| ----------- | ------ | ------------------------------------------------------------------------------------------------------------- |
+| target_lang | string | Target language for translation.<br />Check out [This](https://appworlds.cn/translate) for avalible languages. |
 
 #### log
 
