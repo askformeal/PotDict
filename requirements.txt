@@ -1,4 +1,5 @@
+pillow
 tkinterweb
+python-lzo
 readmdict
 levenshtein
-pyinstaller
