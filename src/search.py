@@ -1,6 +1,7 @@
 from tkinter import filedialog
 from tkinter import messagebox
 from time import perf_counter
+import shutil
 import os
 
 from Levenshtein import distance
@@ -44,6 +45,8 @@ class Search:
     def load(self, load_single=False):
         """Load dicts
         """
+        with open(self.settings.DATA_PATHS['loading_html'], 'r', encoding='utf-8') as f:
+            self.root.set_page(f.read(), 's')
         start_time = perf_counter()
         self.set_dict_state(1, clear=True)
         if load_single:
@@ -59,7 +62,6 @@ class Search:
 
             tmp = Dict(self.root, path)
             self.dicts.append(tmp)
-            # self.headwords += tmp.headwords
             self.set_dict_state(0)
             self.logger.info(f'Loaded dict: {str(tmp)}')
         else:
@@ -87,6 +89,7 @@ class Search:
             # self.headwords = set(self.headwords)
             self.set_dict_state(0)
             end_time = perf_counter()
+            self.root.set_page('', 's')
             self.logger.info(f'All dicts loaded in {end_time-start_time}s')
 
     def get_similar_words(self, word: str) -> list[str]:
@@ -126,20 +129,21 @@ class Search:
             list[str]: a list of similar words
         """
         def on_search(word: str=None):
-            self.root.disable_exit_on_focus_out = True
+            self.clear_res()
             if self.dict_state == 'loading':
-
+                self.root.disable_exit_on_focus_out = True
                 messagebox.showinfo('INFO', 'Please wait until all the dictionaries are loaded')
                 self.root.disable_exit_on_focus_out = False
                 return
             elif self.dict_state == 'error':
+                self.root.disable_exit_on_focus_out = True
                 messagebox.showerror('ERROR', 'Failed to load dictionaries:\n'\
                                     f'Path not found: \"{self.root.option.dict_path}\"')
                 self.root.disable_exit_on_focus_out = False
                 return
-            self.root.disable_exit_on_focus_out = False
 
             flag = False
+            self.root.set_page(f'<h2>Search results for \"{word}\"...</h2>')
             for dict in self.dicts:
                 name = dict.name
                 self.logger.info(f'Searching \"{word}\" in {name}...')
@@ -159,6 +163,9 @@ class Search:
                                 <font size=\"4\">{word}</font>
                                 <br>
                                 '''
-                self.root.load_html(results, 's')
+                self.root.set_page(results, 's')
         
         self.tools.start_thread(on_search, (word,))
+    def clear_res(self):
+        if os.path.exists(self.settings.DATA_PATHS['dict_res']):
+            shutil.rmtree(self.settings.DATA_PATHS['dict_res'])

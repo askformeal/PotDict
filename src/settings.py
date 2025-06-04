@@ -17,6 +17,10 @@ class Settings:
 
         self.LOG_MAX_BYTES = 1024*1024
         self.LOG_BACKUP_CNT = 3
+
+        self.HOST = '127.0.0.1'
+        self.PORT = 8080
+        self.MAX_LISTEN = 5
         
         self.PATHS = {
             'log_dir': './logs',
@@ -28,10 +32,9 @@ class Settings:
 
         self.DATA_PATHS = {
             'default_options': './data/default_options.json',
+            'dict_res': './data/dict_res',
             'icon': './data/app.ico',
-            'dict_ready': './data/dict_ready.png',
-            'dict_loading': './data/dict_loading.png',
-            'dict_error': './data/dict_error.png'
+            'loading_html': './data/loading.html'
         }
         for k,v in self.DATA_PATHS.items():
             self.DATA_PATHS[k] = self.resource_path(v)

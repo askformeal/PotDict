@@ -1,5 +1,6 @@
 import os 
-import urllib.parse
+from urllib.parse import urlparse, unquote
+import re
 
 from readmdict import MDX, MDD
 
@@ -15,8 +16,14 @@ class Dict:
 
         self.mdx = MDX(path, encoding='utf-8')
         self.tools = Tools(self.root, self.root.logger)
-    
-    def search(self, word: str, search) -> bool:
+        mdd_path = path[:-4]+'.mdd'
+        self.has_mdd = False
+        if os.path.exists(mdd_path):
+            self.has_mdd = True
+            self.mdd = MDD(mdd_path)
+        self.tools = Tools(self.root, self.root.logger)
+
+    def search(self, query_word: str, search) -> bool:
         """Search a word
 
         Args:
@@ -26,32 +33,47 @@ class Dict:
             None: not found
             str: definition of the query word (html)
         """
-        """ headwords = [*self.mdx]
-        items = [*self.mdx.items()]
-        word = urllib.parse.unquote(word.strip())
-        try:
-            index = headwords.index(word.encode('utf-8'))
-        except ValueError:
-            try:
-                index = headwords.index(word.lower().encode('utf-8'))
-            except ValueError:
-                return None
-            
-        html = items[index][1]
-        html = html.decode('utf-8')
-        return html """
-        word = urllib.parse.unquote(word.strip())
-        word = word.encode('utf-8')
-        for k,v in self.mdx.items():
-            if word == k or word.lower() == k:
-                self.root.load_html(f'''
-                                <h3 style="color: red;">{self.name}</h3>
-                                <hr color="red" size="3"/>
-                                {v.decode('utf-8')}
-                                ''',
-                                'a')
+        def get_links(data: str) -> tuple[str, list[str]]:
+            src_links = re.findall('src=\".+?\"', data)
+            href_links = re.findall('href=\"[^entry://].+?\"', data)
+            src_links = list(set(src_links))
+            href_links = list(set(href_links))
+            links = src_links + href_links
+            for i in range(len(links)):
+                links[i] = re.findall(r'[^(src=|href=)].+$', links[i])[0][1:-1]
+                tmp = urlparse(links[i])
+                tmp = tmp.netloc + tmp.path
+                path = os.path.join(self.settings.DATA_PATHS['dict_res'],tmp)
+                path = os.path.relpath(path)
+                path = path.replace('\\', '/')
+                links[i] = data = data.replace(links[i], path)
+                links[i] = tmp
+            return (data, links)
+        
+        query_word = unquote(query_word.strip())
+        query_word = query_word.encode('utf-8')
+        for word, html in self.mdx.items():
+            if query_word == word or query_word.lower() == word:
+                html, links = get_links(html.decode('utf-8'))
+                for link in links:
+                    self.get_res(link)
+                self.root.set_page(f'<h3 style="color: red;">{self.name}</h3>'\
+                                    '<hr color="red" size="3"/>'\
+                                    f'{html}',
+                                    'a')
+
                 return True
         return False
 
+    def get_res(self, query_name: str) -> str|None:
+        if self.has_mdd:
+            for name, data in self.mdd.items():
+                if name.decode('utf-8') == f'\\{query_name}':
+                    path = os.path.join(self.settings.DATA_PATHS['dict_res'], query_name)
+                    self.tools.create_file(path)
+                    with open(path, 'wb') as f:
+                        f.write(data)
+                    return path
+            
     def __str__(self):
         return self.name

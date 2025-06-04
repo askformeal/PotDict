@@ -12,3 +12,4 @@ build.ps1
 .python-version
 options.json
 uv.lock
+/data/res

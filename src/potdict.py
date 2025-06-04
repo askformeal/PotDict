@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from tkinterweb import HtmlFrame
 import webbrowser
+import shutil
 import sys
 import os
 
@@ -39,13 +40,13 @@ class PotDict:
             self.logger.info(f'Query word not found')
 
         self.tools = Tools(self)
+        self.setup_win()
         self.search = Search(self)
         self.search.load()
         # self.tools.start_thread(self.search.load, join=True)
 
         self.disable_exit_on_focus_out = False
 
-        self.setup_win()
         self.logger.debug('Main module initialized')
 
     def clear_logs(self):
@@ -56,7 +57,7 @@ class PotDict:
         self.search.logger.clear()
         self.tools.logger.clear()
         
-    def load_html(self, data: str, mode: str='s'):
+    def set_page(self, data: str, mode: str='s'):
         """
         modes:
         s -> set (overwrite)
@@ -67,6 +68,7 @@ class PotDict:
         elif mode == 'a':
             self.page_content += data
         self.page.load_html(self.page_content)
+        self.win.update()
     
     def setup_win(self):
         def on_focus_out(event):
@@ -136,6 +138,7 @@ class PotDict:
 
     def exit(self, code=0):
         try:
+            self.search.clear_res()
             if code == 0:
                 self.logger.info('Exit with code 0')
             else:
