@@ -67,6 +67,8 @@ class Search:
         else:
             if not os.path.exists(self.dir):
                 self.logger.error(f'Dict Folder not found: {self.dir}')
+                with open(self.settings.DATA_PATHS['error_html'], 'r', encoding='utf-8') as f:
+                    self.root.set_page(f.read())
                 self.set_dict_state(2)
                 return
             else:

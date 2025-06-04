@@ -34,7 +34,8 @@ class Settings:
             'default_options': './data/default_options.json',
             'dict_res': './data/dict_res',
             'icon': './data/app.ico',
-            'loading_html': './data/loading.html'
+            'loading_html': './data/loading.html',
+            'error_html': './data/dict_error.html'
         }
         for k,v in self.DATA_PATHS.items():
             self.DATA_PATHS[k] = self.resource_path(v)
