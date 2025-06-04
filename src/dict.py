@@ -57,6 +57,8 @@ class Dict:
                 html, links = get_links(html.decode('utf-8'))
                 for link in links:
                     self.get_res(link)
+                if html.startswith('@@@LINK='):
+                    html = f'<h3>Main entry: {html[8:]}</h3>'
                 self.root.set_page(f'<h3 style="color: red;">{self.name}</h3>'\
                                     '<hr color="red" size="3"/>'\
                                     f'{html}',

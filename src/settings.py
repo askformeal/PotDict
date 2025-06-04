@@ -3,7 +3,7 @@ import os
 
 class Settings:
     def __init__(self):
-        self.VERSION = 'v2.0.3'
+        self.VERSION = 'v2.0.4'
         self.GITHUB_REPO = 'https://github.com/askformeal/potdict'
 
         self.SIZE_RATIO = 5/7 # Width/Height
