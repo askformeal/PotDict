@@ -23,7 +23,7 @@ class Dict:
             self.mdd = MDD(mdd_path)
         self.tools = Tools(self.root, self.root.logger)
 
-    def search(self, query_word: str, search) -> bool:
+    def search(self, query_word: str, search, set_page=True) -> tuple[True, str] | tuple[False, None]:
         """Search a word
 
         Args:
@@ -59,13 +59,15 @@ class Dict:
                     self.get_res(link)
                 if html.startswith('@@@LINK='):
                     html = f'<h3>Main entry: {html[8:]}</h3>'
-                self.root.set_page(f'<h3 style="color: red;">{self.name}</h3>'\
-                                    '<hr color="red" size="3"/>'\
-                                    f'{html}',
-                                    'a')
+                with open(self.settings.DATA_PATHS['dict_html'], 'r', encoding='utf-8') as f:
+                    template = f.read()
+                template = template.replace('%N', self.name)
+                template = template.replace('%D', html)
+                if set_page:
+                    self.root.set_page(template, 'a')
 
-                return True
-        return False
+                return (True, template)
+        return (False, None)
 
     def get_res(self, query_name: str) -> str|None:
         if self.has_mdd:

@@ -3,7 +3,6 @@ import os
 
 class Settings:
     def __init__(self):
-        self.VERSION = 'v2.0.4'
         self.GITHUB_REPO = 'https://github.com/askformeal/potdict'
 
         self.SIZE_RATIO = 5/7 # Width/Height
@@ -35,7 +34,9 @@ class Settings:
             'dict_res': './data/dict_res',
             'icon': './data/app.ico',
             'loading_html': './data/loading.html',
-            'error_html': './data/dict_error.html'
+            'dict_html': './data/dict.html',
+            'error_html': './data/dict_error.html',
+            'not_found_html': './data/not_found.html'
         }
         for k,v in self.DATA_PATHS.items():
             self.DATA_PATHS[k] = self.resource_path(v)

@@ -12,7 +12,7 @@ class Option:
     def __init__(self, root):
         self.root = root
         self.settings = Settings()
-        self.logger = Logger('option', self.root)
+        self.logger = Logger(__name__, self.root)
         self.options_win_open = False
 
     def load(self):

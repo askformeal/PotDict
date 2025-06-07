@@ -1,11 +1,15 @@
 import tkinter as tk
 from tkinter import messagebox
-from tkinterweb import HtmlFrame
 import webbrowser
-import shutil
+from urllib.parse import urlparse
+from random import choice
+import winsound
 import sys
 import os
 
+from tkinterweb import HtmlFrame
+
+import src
 from src.settings import Settings
 from src.option import Option
 from src.logger import Logger
@@ -17,7 +21,7 @@ class PotDict:
         self.settings = Settings()
         self.option = Option(self)
         self.option.load()
-        self.logger = Logger('main', self)
+        self.logger = Logger(__name__, self)
 
         work_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
         self.logger.debug(f'Work dir: {work_dir}')
@@ -31,13 +35,14 @@ class PotDict:
 
         self.query_word = ''
         self.logger.debug(f'argv: {sys.argv}')
-        if len(sys.argv) >= 2:
+        if len(sys.argv) > 1:
             for arg in sys.argv[1:]:
-                if arg.startswith('-q='):
-                    self.query_word = arg[3:]
-            self.logger.info(f'Query word: {self.query_word}')
-        else:
-            self.logger.info(f'Query word not found')
+                if arg == '--exit-on-lost-focus':
+                    self.option.exit_on_focus_out = True
+                    self.logger.info('Will exit on lost focus')
+                else:
+                    self.query_word = arg
+                    self.logger.info(f'Query word set to \"{self.query_word}\"')
 
         self.tools = Tools(self)
         self.setup_win()
@@ -57,6 +62,12 @@ class PotDict:
         self.search.logger.clear()
         self.tools.logger.clear()
         
+    def on_link_click(self, url):
+        self.logger.debug(f'Page link clicked: {url}')
+        url = urlparse(url)
+        if url.scheme == 'entry':
+            self.search.search(url.netloc)
+
     def set_page(self, data: str, mode: str='s'):
         """
         modes:
@@ -69,20 +80,52 @@ class PotDict:
             self.page_content += data
         self.page.load_html(self.page_content)
         self.win.update()
+
+    def set_similar_list(self, query_word: str, sim_words: list[str]):
+        self.set_page('')
+        with open(self.settings.DATA_PATHS['not_found_html'], 'r', encoding='utf-8') as f:
+            template = f.read()
+
+        template = template.replace('%Q', query_word)
+        sim_list = ''
+        for i in range(len(sim_words)):
+            word = sim_words[i]
+            sim_list += '<font size=\"4\">'\
+                        f'<a id=\"{i}\" href=\"entry://{word}\">{word}</a>'\
+                        '</font><br>\n'
+        print(sim_list)
+        template = template.replace('%S', sim_list)
+        self.set_page(template)            
     
+    def shake_win(self):
+        def on_shake():
+            x = self.win.winfo_x()
+            y = self.win.winfo_y()
+            for i in range(1500):
+                self.win.geometry(f'+{x+choice((-2,2))}+{y+choice((-2,2))}')
+            self.win.geometry(f'+{x}+{y}')
+        self.tools.start_thread(target=on_shake)
+
+
     def setup_win(self):
         def on_focus_out(event):
             if event.widget.focus_get() == None and self.option.exit_on_focus_out and not self.disable_exit_on_focus_out:
                 self.logger.debug('Lost focus, exit')
                 self.exit()
 
+        def show_about():
+            self.disable_exit_on_focus_out = True
+            messagebox.showinfo('About', f'PotDict v{src.__version__}\n'\
+                                         'By Demons1014\n'\
+                                         'License: GPL v3.0')
+            self.disable_exit_on_focus_out = False
         self.win = tk.Tk()
         
         self.win.protocol('WM_DELETE_WINDOW', self.exit)
         self.win.bind_all('<FocusOut>', on_focus_out)
         self.win.bind('<Control-p>', lambda event: self.option.set_options())
 
-        self.win.title(f'PotDict {self.settings.VERSION}')
+        self.win.title(f'PotDict v{src.__version__}')
         height = int(self.win.winfo_screenheight() * self.settings.HEIGHT_RATE)
         width = int(self.settings.SIZE_RATIO * height)
 
@@ -99,6 +142,7 @@ class PotDict:
 
         edit_menu = tk.Menu(self.win, tearoff=False)
         edit_menu.add_command(label='Clear log', command=self.clear_logs, underline=0)
+        edit_menu.add_command(label='Shake', command=self.shake_win, underline=0)
         edit_menu.add_separator()
         edit_menu.add_command(label='Options', accelerator='Ctrl+P',
                               command=self.option.set_options, underline=0)
@@ -108,11 +152,7 @@ class PotDict:
                               command=lambda: webbrowser.open(self.settings.GITHUB_REPO),
                               underline=0)
         help_menu.add_separator()
-        help_menu.add_command(label='About',
-                              command=lambda: messagebox.showinfo('About', f'PotDict {self.settings.VERSION}\n'\
-                                                                  'By Demons1014\n'\
-                                                                    'License: GPL v3.0'),
-                              underline=0)
+        help_menu.add_command(label='About', command=show_about, underline=0)
         
         menubar.add_cascade(label='File', menu=file_menu, underline=0)
         menubar.add_cascade(label='Edit', menu=edit_menu, underline=0)
@@ -130,7 +170,7 @@ class PotDict:
                         command=lambda: self.search.search(self.search_entry.get()))
         btn.pack(side='left', fill='both', expand=True, padx=(3,0))
 
-        self.page = HtmlFrame(self.win, messages_enabled=False)
+        self.page = HtmlFrame(self.win, messages_enabled=False, on_link_click=self.on_link_click)
         self.page_content = ''
         self.page.pack(fill='both', expand=True)
 
@@ -152,6 +192,7 @@ class PotDict:
     def start(self):
         self.logger.info('Start main')
         if self.query_word != '':
+            self.search_entry.insert('end', self.query_word)
             self.search.search(self.query_word)
         self.win.update()
         self.win.mainloop()

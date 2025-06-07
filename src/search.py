@@ -16,7 +16,7 @@ class Search:
         self.root = root
         self.dir = self.root.option.dict_path
         self.settings = Settings()
-        self.logger = Logger('search', self.root)
+        self.logger = Logger(__name__, self.root)
         self.dicts: list[Dict] = []
         self.headwords = []
         
@@ -149,7 +149,7 @@ class Search:
             for dict in self.dicts:
                 name = dict.name
                 self.logger.info(f'Searching \"{word}\" in {name}...')
-                tmp = dict.search(word, self)
+                tmp = dict.search(word, self)[0]
                 if tmp:
                     self.logger.info('Found')
                 else:
@@ -157,15 +157,9 @@ class Search:
                 flag = flag or tmp
 
             if not flag:
-                results = f'<h2>Sorry, No definition for "{word}"...<br>Are you looking for:</h2>'
                 self.logger.info(f'No definition for \"{word}\"')
                 similar_words = self.get_similar_words(word)
-                for word in similar_words:
-                    results += f'''
-                                <font size=\"4\">{word}</font>
-                                <br>
-                                '''
-                self.root.set_page(results, 's')
+                self.root.set_similar_list(word, similar_words)
         
         self.tools.start_thread(on_search, (word,))
     def clear_res(self):
