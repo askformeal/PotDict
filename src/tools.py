@@ -2,12 +2,13 @@ from threading import Thread
 from typing import Callable
 import os
 
+from src import main
 from src.settings import Settings
 from src.logger import Logger
 
 class Tools:
     def __init__(self, root, logger: Logger|None=None):
-        self.root = root
+        self.root: main.PotDict = root
         self.settings = Settings()
         if logger:
             self.logger = logger

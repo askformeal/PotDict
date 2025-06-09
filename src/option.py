@@ -3,12 +3,13 @@ from tkinter import filedialog
 import logging
 import json
 
+from src import main
 from src.settings import Settings
 from src.logger import Logger
 
 class Option:
     def __init__(self, root):
-        self.root = root
+        self.root: main.PotDict = root
         self.settings = Settings()
         self.logger = Logger(__name__, self.root)
         self.options_win_open = False
@@ -22,7 +23,7 @@ class Option:
                     self.options = json.load(f)
                 except json.decoder.JSONDecodeError as e:
                     self.logger.critical(f'Failed to load option file: {e}\n\tTry to delete options.json')
-                    self.root.exit(code=1, note='invalid option file')
+                    self.root.exit(code=1, note='invalid option file formate')
         except FileNotFoundError:
             self.logger.info('Option file not found, restore to default')
             with open(self.settings.DATA_PATHS['default_options'], 'r', encoding='utf-8') as f:
@@ -30,9 +31,14 @@ class Option:
             with open(self.settings.PATHS['options'], 'w', encoding='utf-8') as f:
                 json.dump(self.options, f, indent=4)
         
-        self.dict_paths = self.options['dict_paths']
-        self.log_level = getattr(logging, self.options['log_level'], logging.NOTSET)
-        self.eolf = self.options['exit_on_focus_out']
+        try:
+            self.dict_paths = self.options['dict_paths']
+            self.log_level = getattr(logging, self.options['log_level'], logging.NOTSET)
+            self.eolf = self.options['exit_on_focus_out']
+            self.lang = self.options['lang']
+        except KeyError as e:
+            self.logger.critical(f'Invalid option file: {e}')
+            self.root.exit(code=1, note='invalid option file formate')
 
 
     def set_options(self):

@@ -1,12 +1,13 @@
 import socket
 
+from src import main
 from src.settings import Settings
 from src.logger import Logger
 from src.tools import Tools
 
 class Listener:
     def __init__(self, root):
-        self.root = root
+        self.root: main.PotDict = root
         self.settings = Settings()
         self.logger = Logger(__name__, self.root)
         self.tools = Tools(self.root, self.logger)

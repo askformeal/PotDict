@@ -3,6 +3,7 @@ import logging.handlers
 import re
 import os
 
+from src import main
 from src.settings import Settings
 
 class Logger(logging.Logger):
@@ -20,7 +21,7 @@ class Logger(logging.Logger):
                 50 -> CRITICAL
         """        
         super().__init__(name, level)
-        self.root = root
+        self.root: main.PotDict = root
         if self.root.option_ready:
             self.setLevel(self.root.option.log_level)
         self.settings = Settings()

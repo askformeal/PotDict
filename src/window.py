@@ -6,8 +6,7 @@ import webbrowser
 
 from tkinterweb import HtmlFrame
 
-import src
-import src.main
+from src import main, __version__
 from src.settings import Settings
 from src.logger import Logger
 from src.tools import Tools
@@ -15,7 +14,7 @@ from src.tools import Tools
 class Window(tk.Tk):
     def __init__(self, root):
         super().__init__()
-        self.root: src.main.PotDict = root
+        self.root: main.PotDict = root
         self.settings = Settings()
         self.logger = Logger(__name__, self.root)
         self.tools = Tools(self.root, self.logger)
@@ -27,7 +26,7 @@ class Window(tk.Tk):
 
         def show_about():
             tmp = lambda: messagebox.showinfo('About', 
-                                              f'PotDict v{src.__version__}\n'\
+                                              f'PotDict v{__version__}\n'\
                                               'By Demons1014\n'\
                                               'License: GPL v3.0'\
                                               'Translation API: https://appworlds.cn/translate')
@@ -36,7 +35,7 @@ class Window(tk.Tk):
         self.bind_all('<FocusOut>', on_focus_out)
         self.bind('<Control-p>', lambda event: self.option.set_options())
 
-        self.title(f'PotDict v{src.__version__}')
+        self.title(f'PotDict v{__version__}')
         height = int(self.winfo_screenheight() * self.settings.HEIGHT_RATE)
         width = int(self.settings.SIZE_RATIO * height)
 

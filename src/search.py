@@ -11,13 +11,14 @@ from Levenshtein import distance
 from readmdict import MDX, MDD
 import requests
 
+from src import main
 from src.settings import Settings
 from src.logger import Logger
 from src.tools import Tools
 
 class Dict:
     def __init__(self, root, path: str):
-        self.root = root
+        self.root: main.PotDict = root
         self.name = os.path.basename(path)
         self.name = os.path.splitext(self.name)[0]
 
