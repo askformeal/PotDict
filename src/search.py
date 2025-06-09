@@ -1,25 +1,101 @@
 from tkinter import filedialog
 from tkinter import messagebox
 from time import perf_counter
+from urllib.parse import unquote, urlparse
 import shutil
+import re
 import os
 
 from Levenshtein import distance
+from readmdict import MDX, MDD
 
 from src.settings import Settings
-from src.dict import Dict
 from src.logger import Logger
 from src.tools import Tools
 
+class Dict:
+    def __init__(self, root, path: str):
+        self.root = root
+        self.name = os.path.basename(path)
+        self.name = os.path.splitext(self.name)[0]
+
+        self.settings = Settings()
+        self.mdx = MDX(path, encoding='utf-8')
+        self.tools = Tools(self.root, self.root.logger)
+        mdd_path = os.path.splitext(path)[0] + '.mdd'
+        if os.path.exists(mdd_path):
+            self.has_mdd = True
+            self.mdd = MDD(mdd_path)
+        else:
+            self.has_mdd = False
+        self.tools = Tools(self.root, self.root.logger)
+
+    def search(self, query_word: str, search, set_page=True) -> tuple[True, str] | tuple[False, None]:
+        """Search a word
+
+        Args:
+            word (str): query word
+
+        Returns:
+            None: not found
+            str: definition of the query word (html)
+        """
+        def get_links(data: str) -> tuple[str, list[str]]:
+            src_links = re.findall('src=\".+?\"', data)
+            href_links = re.findall('href=\"[^entry://].+?\"', data)
+            links = src_links + href_links
+            links = list(set(links))
+            for i in range(len(links)):
+                links[i] = re.findall(r'[^(src=|href=)].+$', links[i])[0][1:-1]
+                tmp = urlparse(links[i])
+                tmp = tmp.netloc + tmp.path
+                path = os.path.join(self.settings.DATA_PATHS['dict_res'],tmp)
+                path = os.path.relpath(path)
+                path = path.replace('\\', '/')
+                data = data.replace(links[i], path)
+                links[i] = tmp
+            return (data, links)
+        
+        query_word = query_word.encode('utf-8')
+        for word, html in self.mdx.items():
+            if query_word == word or query_word.lower() == word:
+                html = html.decode('utf-8')
+                html, links = get_links(html)
+                for link in links:
+                    self.get_res(link)
+                if html.startswith('@@@LINK='):
+                    html = f'<h3>Main entry: {html[8:]}</h3>'
+                with open(self.settings.DATA_PATHS['dict_html'], 'r', encoding='utf-8') as f:
+                    template = f.read()
+                template = template.replace('%N', self.name)
+                template = template.replace('%D', html)
+                if set_page:
+                    self.root.win.set_page(template, 'a')
+
+                return (True, template)
+        return (False, None)
+
+    def get_res(self, query_name: str) -> str|None:
+        if self.has_mdd:
+            for name, data in self.mdd.items():
+                if name.decode('utf-8') == f'\\{query_name}':
+                    path = os.path.join(self.settings.DATA_PATHS['dict_res'], query_name)
+                    self.tools.create_file(path)
+                    with open(path, 'wb') as f:
+                        f.write(data)
+                    return path
+            
+    def __str__(self):
+        return self.name
 class Search:
     def __init__(self, root):
         self.root = root
-        self.dir = self.root.option.dict_path
+        self.paths = self.root.option.dict_paths
         self.settings = Settings()
         self.logger = Logger(__name__, self.root)
         self.dicts: list[Dict] = []
         self.headwords = []
-        
+        self.searching = False
         self.tools = Tools(self.root)
         self.set_dict_state(0)
         self.results = ''
@@ -46,7 +122,7 @@ class Search:
         """Load dicts
         """
         with open(self.settings.DATA_PATHS['loading_html'], 'r', encoding='utf-8') as f:
-            self.root.set_page(f.read(), 's')
+            self.root.win.set_page(f.read(), 's')
         start_time = perf_counter()
         self.set_dict_state(1, clear=True)
         if load_single:
@@ -65,34 +141,111 @@ class Search:
             self.set_dict_state(0)
             self.logger.info(f'Loaded dict: {str(tmp)}')
         else:
-            if not os.path.exists(self.dir):
-                self.logger.error(f'Dict Folder not found: {self.dir}')
-                with open(self.settings.DATA_PATHS['error_html'], 'r', encoding='utf-8') as f:
-                    self.root.set_page(f.read())
-                self.set_dict_state(2)
-                return
-            else:
-                paths = os.listdir(self.dir)
-                dicts = []
-                for i in range(len(paths)):
-                    path = paths[i]
-                    path = os.path.abspath(os.path.join(self.dir, path))
-                    if os.path.isfile(path) and (os.path.splitext(path)[-1].lower() == '.mdx'):
-                        dicts.append(path)
-                
-                self.set_dict_state(1)
-                
-                for i in range(len(dicts)):
-                    tmp = Dict(self.root, dicts[i])
-                    self.dicts.append(tmp)
-                    # self.headwords += tmp.headwords
-                    self.logger.info(f'Loaded dict: {str(tmp)} ({i+1}/{len(dicts)})')
-                    self.set_dict_state(1)
-            # self.headwords = set(self.headwords)
+            ok_cnt = 0
+            error_cnt = 0
+            for i in range(len(self.paths)):
+                path = self.paths[i]
+                if not os.path.exists(path):
+                    error_cnt += 1
+                    self.logger.error(f'Dict not found: {path}')
+                    continue
+                else:
+                    if os.path.isfile(path):
+                        try:
+                            tmp = Dict(self.root, path)
+                        except Exception:
+                            error_cnt += 1
+                            self.logger.error(f'Invalid dict file: {path}')
+                            continue
+                        else:
+                            self.dicts.append(tmp)
+                            ok_cnt += 1
+                            self.logger.info(f'Loaded dict: {str(tmp)} ({i+1}/{len(self.paths)})')
+                    else:
+                        error_cnt += 1
+                        self.logger.error(f'Not a file: {path}')
+                        continue
+
             self.set_dict_state(0)
             end_time = perf_counter()
-            self.root.set_page('', 's')
-            self.logger.info(f'All dicts loaded in {end_time-start_time}s')
+            self.root.win.set_page('', 's')
+            self.logger.info(f'Loaded {ok_cnt} dicts in {end_time-start_time}s, '\
+                             f'{error_cnt} errors, total {len(self.paths)}')
+
+    def on_search(self, word: str=None, set_page=True) -> str:
+            self.clear_res()
+            if self.dict_state == 'loading':
+                tmp = lambda: messagebox.showinfo('INFO', 
+                                                  'Please wait until all the '\
+                                                  'dictionaries are loaded')
+                self.root.win.pause_eolf(tmp)
+                return
+            elif self.dict_state == 'error':
+                tmp = lambda: messagebox.showerror('ERROR', 
+                                                   'Failed to load dictionaries:\n'\
+                                                   'Path not found: '\
+                                                   f'\"{self.root.option.dict_path}\"')
+                self.root.win.pause_eolf(tmp)
+                return
+            elif self.searching:
+                tmp = lambda: messagebox.showerror('ERROR', 
+                                                   'Searching, please waite')
+                self.root.win.pause_eolf(tmp)   
+                return
+            
+            word = unquote(word).strip()
+            self.searching = True
+            flag = False
+            cnt = 0
+            result = ''
+            self.root.win.set_page(f'<h2>Search results for \"{word}\"...</h2>')
+            for dict in self.dicts:
+                name = dict.name
+                self.logger.info(f'Searching \"{word}\" in {name}...')
+                is_found, tmp = dict.search(word, self, set_page)
+                if is_found:
+                    result += tmp
+                    self.logger.info('Found')
+                    cnt += 1
+                else:
+                    self.logger.info('Not found')
+                flag = flag or is_found
+            self.logger.info(f'Search done, {cnt} definition(s) found in '\
+                             f'{len(self.dicts)} dicts')
+            
+            if not flag:
+                self.logger.info(f'No definition for \"{word}\"')
+                similar_words = self.get_similar_words(word)
+                self.logger.debug(f'Similar words of {word}: {similar_words}')
+                self.root.win.set_page('')
+                with open(self.settings.DATA_PATHS['not_found_html'], 'r', encoding='utf-8') as f:
+                    result = f.read()
+
+                result = result.replace('%Q', word)
+                sim_list = ''
+                for i in range(len(similar_words)):
+                    sim_word = similar_words[i]
+                    sim_list += '<font size=\"4\">'\
+                                f'<a id=\"{i}\" href=\"entry://{sim_word}\">{sim_word}</a>'\
+                                '</font><br>\n'
+                result = result.replace('%S', sim_list)
+                if set_page:
+                    self.root.win.set_page(result)
+            self.searching = False
+            return result
+
+    def search(self, word: str=None, set_page=True):
+        
+        """search a word
+
+        Args:
+            word (str): query word
+
+        Returns:
+            str: html of the definition
+            list[str]: a list of similar words
+        """
+        self.tools.start_thread(self.on_search, (word,set_page,))
 
     def get_similar_words(self, word: str) -> list[str]:
         """Get similar words
@@ -119,49 +272,6 @@ class Search:
                 similar_words[headword] = sim
         return list(similar_words.keys())
 
-    def search(self, word: str=None):
-        
-        """search a word
-
-        Args:
-            word (str): query word
-
-        Returns:
-            str: html of the definition
-            list[str]: a list of similar words
-        """
-        def on_search(word: str=None):
-            self.clear_res()
-            if self.dict_state == 'loading':
-                self.root.disable_exit_on_focus_out = True
-                messagebox.showinfo('INFO', 'Please wait until all the dictionaries are loaded')
-                self.root.disable_exit_on_focus_out = False
-                return
-            elif self.dict_state == 'error':
-                self.root.disable_exit_on_focus_out = True
-                messagebox.showerror('ERROR', 'Failed to load dictionaries:\n'\
-                                    f'Path not found: \"{self.root.option.dict_path}\"')
-                self.root.disable_exit_on_focus_out = False
-                return
-
-            flag = False
-            self.root.set_page(f'<h2>Search results for \"{word}\"...</h2>')
-            for dict in self.dicts:
-                name = dict.name
-                self.logger.info(f'Searching \"{word}\" in {name}...')
-                tmp = dict.search(word, self)[0]
-                if tmp:
-                    self.logger.info('Found')
-                else:
-                    self.logger.info('Not found')
-                flag = flag or tmp
-
-            if not flag:
-                self.logger.info(f'No definition for \"{word}\"')
-                similar_words = self.get_similar_words(word)
-                self.root.set_similar_list(word, similar_words)
-        
-        self.tools.start_thread(on_search, (word,))
     def clear_res(self):
         if os.path.exists(self.settings.DATA_PATHS['dict_res']):
             shutil.rmtree(self.settings.DATA_PATHS['dict_res'])

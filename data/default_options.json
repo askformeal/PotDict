@@ -1,5 +1,5 @@
 {
     "log_level": "DEBUG",
     "exit_on_focus_out": false,
-    "dict_path": ""
+    "dict_paths": []
 }

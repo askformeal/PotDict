@@ -1,5 +1,4 @@
 import socket
-import os
 
 from src.settings import Settings
 from src.logger import Logger
@@ -16,14 +15,12 @@ class Listener:
         def on_start():
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
                 try:
-                    server.bind((self.settings.HOST, 
-                                self.settings.PORT
-                                ))
+                    server.bind((self.settings.HOST, self.settings.PORT))
                 except OSError as e:
                     self.logger.critical(f'Failed to bind to {self.settings.HOST}:{self.settings.PORT}:\n'\
                                          f'    {e}\n'\
-                                         '    Possibly because an instance of PotDict is already running.')
-                    self.root.exit(1)
+                                         '    Possibly because another instance of PotDict is already running, try --no-listener')
+                    self.root.exit(code=1, note='Binding failed')
                     
                 server.listen(self.settings.MAX_LISTEN)
                 self.logger.debug(f'Listening at {self.settings.HOST}:{self.settings.PORT}')
@@ -33,25 +30,11 @@ class Listener:
                     request = conn.recv(1024).decode('utf-8')
                     request = request.splitlines()[0].split()[1]
                     self.logger.debug(f'Received: {request}')
-                    """ if request == '/':
-                        conn.send(self.get_response(200, self.root.html.get('home')))
-                    elif request == '/test':
-                        conn.send(self.get_response(200, 'hello!'))
-                    elif request.startswith('/res'):
-                        request = request[5:] # /res/xxxx -> xxxx
-                        path = os.path.join(self.settings.DATA_PATHS['res'], request)
-                        self.logger.debug(f'Send file: {path}')
-                        with open(path, 'rb') as f:
-                            data = f.read()
-                        t = self.get_type(path)
-                        conn.send(self.get_response(200, data, t))
-                    elif request.startswith('/entry'):
-                        word = request[7:] # /entry/xxxx -> xxxx
-                        result = self.root.search.search(word)
-                        result = result.replace('entry://', 
-                                                f'http://{self.settings.HOST}:{self.settings.PORT}/entry/')
-                        result = result.replace('%Q', word)
-                        conn.send(self.get_response(200, result)) """
+                    word = request[1:]
+                    """ result = self.root.search.on_search(word, False)
+                    conn.send(self.get_response(200, result)) """
+                    self.root.search.search(word)
+                    self.root.win.show_win()
                     conn.close()
 
         self.tools.start_thread(on_start)

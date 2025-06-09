@@ -41,6 +41,10 @@ class Settings:
         for k,v in self.DATA_PATHS.items():
             self.DATA_PATHS[k] = self.resource_path(v)
     
+        self.HEADER200 = 'HTTP/1.1 200 OK\r\n' \
+                    'Content-Type: %CT; charset=UTF-8\r\n' \
+                    'Content-Length: %CL\r\n\r\n'
+
     def resource_path(self, relative_path):
         if hasattr(sys, '_MEIPASS'):
             base_path = sys._MEIPASS

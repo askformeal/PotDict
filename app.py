@@ -1,4 +1,4 @@
-from src.potdict import PotDict
+from src.main import PotDict
 
 if __name__ == '__main__':
     pd = PotDict()

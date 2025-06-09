@@ -21,8 +21,8 @@ class Logger(logging.Logger):
         """        
         super().__init__(name, level)
         self.root = root
-        if hasattr(self.root, 'options'):
-            self.setLevel(self.root.options.log_level)
+        if self.root.option_ready:
+            self.setLevel(self.root.option.log_level)
         self.settings = Settings()
         if not os.path.exists(self.settings.PATHS['log_dir']):
             os.makedirs(self.settings.PATHS['log_dir'])
@@ -44,9 +44,9 @@ class Logger(logging.Logger):
         for file in os.listdir(self.settings.PATHS['log_dir']):
             if re.match(f'{os.path.basename(self.path)}(\\.[0-9]+)$', file) != None:
                 file = os.path.join(self.settings.PATHS['log_dir'], file)
-                self.info(f'Delete log: {file}')
                 try:
                     os.remove(file)
+                    self.info(f'Delete log: {file}')
                 except PermissionError as e:
                     self.error(f'Failed to delete log: {file}')
         with open(self.path, 'w') as f:

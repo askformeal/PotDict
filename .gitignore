@@ -1,10 +1,10 @@
+__pycache__/
 /.vscode/
 /dist
 /build
 /.venv
 *.exe
 *.log
-__pycache__/
 /tmp
 /logs
 /dicts

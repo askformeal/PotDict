@@ -8,6 +8,7 @@ dependencies = [
     "levenshtein>=0.27.1",
     "pillow>=11.2.1",
     "pyinstaller>=6.13.0",
+    "pystray>=0.19.5",
     "python-lzo",
     "readmdict>=0.1.1",
     "tkinterweb>=4.3.1",
