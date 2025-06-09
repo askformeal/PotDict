@@ -36,7 +36,8 @@ class Settings:
             'loading_html': './data/loading.html',
             'dict_html': './data/dict.html',
             'error_html': './data/dict_error.html',
-            'not_found_html': './data/not_found.html'
+            'not_found_html': './data/not_found.html',
+            'langs': './data/langs.json'
         }
         for k,v in self.DATA_PATHS.items():
             self.DATA_PATHS[k] = self.resource_path(v)

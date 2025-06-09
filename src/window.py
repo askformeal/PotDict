@@ -29,7 +29,8 @@ class Window(tk.Tk):
             tmp = lambda: messagebox.showinfo('About', 
                                               f'PotDict v{src.__version__}\n'\
                                               'By Demons1014\n'\
-                                              'License: GPL v3.0')
+                                              'License: GPL v3.0'\
+                                              'Translation API: https://appworlds.cn/translate')
             self.pause_eolf(tmp)
         self.protocol('WM_DELETE_WINDOW', self.hide_win)
         self.bind_all('<FocusOut>', on_focus_out)

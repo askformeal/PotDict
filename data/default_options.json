@@ -1,5 +1,6 @@
 {
     "log_level": "DEBUG",
     "exit_on_focus_out": false,
-    "dict_paths": []
+    "dict_paths": [],
+    "lang": ""
 }

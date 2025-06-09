@@ -3,11 +3,13 @@ from tkinter import messagebox
 from time import perf_counter
 from urllib.parse import unquote, urlparse
 import shutil
+import json
 import re
 import os
 
 from Levenshtein import distance
 from readmdict import MDX, MDD
+import requests
 
 from src.settings import Settings
 from src.logger import Logger
@@ -271,6 +273,20 @@ class Search:
                 del similar_words[list(similar_words.keys())[-1]]
                 similar_words[headword] = sim
         return list(similar_words.keys())
+
+    def translate(text, target_lang):
+        if target_lang == '':
+            return "[Target language not defined]"
+        response = requests.get(f'https://translate.appworlds.cn?text={text}&from=auto&to={target_lang}')
+        response.encoding = 'utf-8'
+        if response.status_code != 200:
+            return f'[Connection failed: code {response.status_code}]'
+        else:
+            result = json.loads(response.text)
+            if result['code'] != 200:
+                return f'[{result['msg']}]'
+            else:
+                return result['data']
 
     def clear_res(self):
         if os.path.exists(self.settings.DATA_PATHS['dict_res']):
